@@ -33,7 +33,7 @@ const OnboardingDialog = () => {
 
   const onboardingSteps = [
     {
-      title: 'Welcome to Furever!',
+      title: 'Welcome to SkinTwin!',
       description: 'Take a quick tour to learn more.',
       imageClassName: 'scale-[0.85]',
       cursorClassName: 'opacity-0',
@@ -138,7 +138,7 @@ const OnboardingDialog = () => {
           <div className="relative h-[300px] w-full overflow-hidden border-b bg-gradient-to-tr from-[#CCCCFD] to-[#B0E9F7]">
             <Image
               src={onboardingSteps[currentStep].imageURL}
-              alt="Image of the Furever website"
+              alt="Image of the SkinTwin website"
               placeholder="blur"
               quality={80}
               sizes="1200px"

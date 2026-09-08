@@ -3,6 +3,7 @@ import {twMerge} from 'tailwind-merge';
 import {Stripe} from 'stripe';
 import {stripe} from '@/lib/stripe';
 import {defaultPrimaryColor} from '@/app/contexts/themes/ThemeConstants';
+import {DEFAULT_BRAND_NAME} from '@/lib/brand';
 import {Session} from 'next-auth';
 
 export function cn(...inputs: ClassValue[]) {
@@ -127,7 +128,7 @@ export function hasCustomBranding(settings: {
   const hasCustomColor = primaryColor && primaryColor !== defaultPrimaryColor;
 
   // Check if company name is set and differs from default
-  const hasCustomName = companyName && companyName !== 'Furever';
+  const hasCustomName = companyName && companyName !== DEFAULT_BRAND_NAME;
 
   // Check if company logo is set
   const hasCustomLogo = companyLogoUrl && companyLogoUrl !== '';

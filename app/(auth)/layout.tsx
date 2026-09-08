@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Container from '@/app/components/Container';
-import FureverLogo from '@/public/furever_logo.png';
+import SkinTwinLogo from '@/public/skintwin_logo.png';
 import Stripe from '@/public/stripe-gray.svg';
 import Link from 'next/link';
 import {signOut} from 'next-auth/react';
@@ -11,6 +11,7 @@ import {Button} from '@/components/ui/button';
 import {hasCustomBranding} from '@/lib/utils';
 import {SettingsContext} from '../contexts/settings';
 import {useContext} from 'react';
+import {DEFAULT_BRAND_NAME} from '@/lib/brand';
 
 export default function AuthLayout({
   children,
@@ -49,13 +50,13 @@ export default function AuthLayout({
           <Link href="/">
             <div className="flex items-center gap-4 text-3xl font-bold text-primary">
               <Image
-                src={data?.user?.companyLogoUrl || FureverLogo}
-                alt={`${data?.user?.companyName || 'Furever'} Logo`}
+                src={data?.user?.companyLogoUrl || SkinTwinLogo}
+                alt={`${data?.user?.companyName || DEFAULT_BRAND_NAME} Logo`}
                 className="h-12 w-12 sm:h-16 sm:w-16"
                 width={40}
                 height={40}
               />
-              {data?.user?.companyName || 'Furever'}
+              {data?.user?.companyName || DEFAULT_BRAND_NAME}
             </div>
           </Link>
         </div>
@@ -76,7 +77,7 @@ export default function AuthLayout({
             >
               Stripe Connect embedded components
             </a>
-            . Furever is not a real product.
+            . SkinTwin is not a real product.
           </p>
         </div>
       </div>

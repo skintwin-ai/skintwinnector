@@ -1,7 +1,7 @@
 'use client';
 
 import Dog from '@/public/landing-page.jpeg';
-import FureverLogo from '@/public/furever_logo.png';
+import SkinTwinLogo from '@/public/skintwin_logo.png';
 import Image from 'next/image';
 import DogHug from '@/public/testimonial.jpeg';
 import QuotePortrait from '@/public/testimonial-portrait.jpg';
@@ -108,23 +108,23 @@ export default function LandingPage() {
         <div className="mx-auto flex max-w-screen-lg flex-col items-center px-4 pb-16 sm:pb-[140px]">
           <div className="flex w-full flex-row items-center justify-center gap-3 py-4">
             <Image
-              src={FureverLogo}
-              alt="Furever logo"
+              src={SkinTwinLogo}
+              alt="SkinTwin logo"
               height={48}
               width={48}
               sizes="92px"
               priority
             />
-            <p className="text-2xl font-bold text-white">Furever</p>
+            <p className="text-2xl font-bold text-white">SkinTwin</p>
           </div>
 
           <div className="max-w-[700px] py-8 sm:py-16">
             <h1 className="mb-1 text-center text-4xl font-bold leading-tight text-white drop-shadow sm:text-6xl">
-              Manage your pet business with ease.
+              Manage your skincare practice with ease.
             </h1>
             <p className="pt-4 text-center text-xl text-white drop-shadow sm:text-[24px]">
-              Furever is the world&apos;s leading pet grooming platform. Join
-              our team of salons and expand your business.
+              SkinTwin is the world&apos;s leading skincare platform. Join our
+              team of clinics and expand your practice.
             </p>
           </div>
           <div className="flex h-[52px] flex-row gap-x-4">
@@ -149,13 +149,13 @@ export default function LandingPage() {
           <div className="flex flex-col items-center py-12 sm:py-20">
             <h3 className="text-lg font-bold text-accent">FEATURES</h3>
             <p className="mb-12 text-center text-3xl font-bold text-black">
-              Everything you need to manage your pet business.
+              Everything you need to manage your skincare practice.
             </p>
             <div className="flex flex-col gap-3 sm:flex-row sm:gap-6">
               <Card
                 icon={<CalendarCheck color="var(--accent)" />}
                 title="Simple scheduling"
-                description="Easily set up appointments, organize your calendar, and manage different salons."
+                description="Easily set up appointments, organize your calendar, and manage different clinics."
               />
               <Card
                 icon={<CreditCard color="var(--accent)" />}
@@ -186,9 +186,9 @@ export default function LandingPage() {
             />
             <div className="flex flex-col gap-y-6">
               <p className="relative text-3xl font-bold text-black">
-                “Furever has transformed the way we manage our salon! Booking
-                and payments are seamless now, and our clients love the
-                convenience!”
+                “SkinTwin has transformed the way we manage our clinic!
+                Booking and payments are seamless now, and our clients love
+                the convenience!”
                 <Quote
                   fill="var(--accent)"
                   strokeWidth={0}
@@ -207,7 +207,7 @@ export default function LandingPage() {
                 />
                 <div>
                   <p className="text-xl font-bold text-accent">Jamie L.</p>
-                  <p className="text-md text-secondary">Paws & Relax Spa</p>
+                  <p className="text-md text-secondary">Radiant Skin Studio</p>
                 </div>
               </div>
             </div>
@@ -224,8 +224,8 @@ export default function LandingPage() {
                 Get started today.
               </h2>
               <p className="mb-6 text-left text-xl sm:text-2xl">
-                Furever is the world&apos;s leading pet grooming platform. Join
-                our team of salons and expand your business
+                SkinTwin is the world&apos;s leading skincare platform. Join
+                our team of clinics and expand your practice
               </p>
               <Link href="/signup">
                 <Button
@@ -241,7 +241,7 @@ export default function LandingPage() {
             <div className="w-full overflow-hidden rounded-lg shadow-xl">
               <Image
                 src={Dashboard}
-                alt="A screenshot of Furever dashboard"
+                alt="A screenshot of SkinTwin dashboard"
                 sizes="50vw"
                 className="w-full"
               />
@@ -270,7 +270,7 @@ export default function LandingPage() {
             >
               Stripe Connect embedded components
             </a>
-            . Furever is not a real product.
+            . SkinTwin is not a real product.
           </p>
         </div>
         <div className="flex justify-between">
@@ -284,7 +284,7 @@ export default function LandingPage() {
           </a>
           <a
             className="flex items-center gap-1 text-sm font-medium text-white transition hover:opacity-80 sm:text-base"
-            href="https://github.com/stripe/stripe-connect-furever-demo"
+            href="https://github.com/skintwin-ai/skintwinnector"
             target="_blank"
           >
             View on GitHub

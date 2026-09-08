@@ -17,6 +17,7 @@ import {
 import {SettingsContext} from '../contexts/settings';
 import {defaultPrimaryColor} from '../contexts/themes/ThemeConstants';
 import BrandSettingsIcon from '@/public/brand-settings.svg';
+import {DEFAULT_BRAND_NAME} from '@/lib/brand';
 
 const BrandSettingsModal = () => {
   const [isOpen, setIsOpen] = React.useState(false);
@@ -29,7 +30,7 @@ const BrandSettingsModal = () => {
     settings.primaryColor || defaultPrimaryColor
   );
   const [companyName, setCompanyName] = React.useState(
-    settings.companyName || 'Furever'
+    settings.companyName || DEFAULT_BRAND_NAME
   );
   // Used for uploading the file
   const [logoFileObject, setLogoFileObject] = React.useState<File | null>(null);
@@ -45,7 +46,7 @@ const BrandSettingsModal = () => {
   React.useEffect(() => {
     if (isOpen) {
       setPrimaryColor(settings.primaryColor || defaultPrimaryColor);
-      setCompanyName(settings.companyName || 'Furever');
+      setCompanyName(settings.companyName || DEFAULT_BRAND_NAME);
       setLogoFileObject(null);
       setLogoFilePreview(settings.companyLogoUrl || null);
     }
@@ -220,14 +221,14 @@ const BrandSettingsModal = () => {
 
       // Reset local state
       setPrimaryColor(defaultPrimaryColor);
-      setCompanyName('Furever');
+      setCompanyName(DEFAULT_BRAND_NAME);
       setLogoFileObject(null);
       setLogoFilePreview(null);
 
       // Update settings context
       settings.handleUpdate({
         primaryColor: defaultPrimaryColor,
-        companyName: 'Furever',
+        companyName: DEFAULT_BRAND_NAME,
         companyLogoUrl: undefined,
       });
 
@@ -235,7 +236,7 @@ const BrandSettingsModal = () => {
       await update({
         user: {
           ...session?.user,
-          companyName: 'Furever',
+          companyName: DEFAULT_BRAND_NAME,
           companyLogoUrl: null,
           primaryColor: defaultPrimaryColor,
         },
