@@ -7,7 +7,7 @@ import type {Settings} from '@/types/settings';
 import {defaultSettings, SettingsContext} from './SettingsContext';
 import {Session} from 'next-auth';
 
-const STORAGE_KEY = 'furever.app.settings';
+const STORAGE_KEY = 'skintwin.app.settings';
 
 const updateCSSVariables = (primaryColor: string) => {
   const root = document.documentElement;

@@ -1,14 +1,14 @@
-# FurEver: Stripe Connect embedded components demo
+# SkinTwin: Stripe Connect embedded components demo
 
-FurEver is a vertical SaaS grooming platform for pet salons to manage their e2e business operations. FurEver wants to provide access to Stripe products and UIs directly in their website, at a fraction of the engineering cost, using [Stripe Connect](https://stripe.com/connect) and [Stripe Connect embedded components](https://docs.stripe.com/connect/get-started-connect-embedded-components).
+SkinTwin is a vertical SaaS skincare platform for clinics and practitioners to manage their e2e business operations. SkinTwin wants to provide access to Stripe products and UIs directly in their website, at a fraction of the engineering cost, using [Stripe Connect](https://stripe.com/connect) and [Stripe Connect embedded components](https://docs.stripe.com/connect/get-started-connect-embedded-components).
 
-**See a live version on [furever.dev](https://furever.dev).**
+**See a live version on [skintwin.ai](https://skintwin.ai).**
 
 <img src="public/cover.png">
 
 ## Features
 
-FurEver showcases the integration between a platform's website, [Stripe Connect](https://stripe.com/connect), and [Stripe Connect embedded components](https://docs.stripe.com/connect/get-started-connect-embedded-components). Users sign up within the platform's website and through the process, a corresponding Stripe unified account is created with the following configuration:
+SkinTwin showcases the integration between a platform's website, [Stripe Connect](https://stripe.com/connect), and [Stripe Connect embedded components](https://docs.stripe.com/connect/get-started-connect-embedded-components). Users sign up within the platform's website and through the process, a corresponding Stripe unified account is created with the following configuration:
 
 - Stripe owns loss liability
 - Platform owns pricing
@@ -17,7 +17,7 @@ FurEver showcases the integration between a platform's website, [Stripe Connect]
 
 The user will then onboard with Stripe via embedded onboarding. Thereafter, Connect embedded components will provide the UI surfaces for account management and dashboard UI elements with just a few lines of code. The demo website also uses the Stripe API to create test payments and payouts. This app also contains a basic authentication system.
 
-FurEver makes use of the following [Connect embedded components](https://docs.stripe.com/connect/supported-embedded-components):
+SkinTwin makes use of the following [Connect embedded components](https://docs.stripe.com/connect/supported-embedded-components):
 
 - `<ConnectOnboarding />` enables an embedded onboarding experience without redirecting users to Stripe hosted onboarding.
 - `<ConnectBalanceReport />` provides a downloadable financial report of balance activity.
@@ -49,12 +49,12 @@ This demo is built with
 
 To integrate Stripe Connect embedded components, check out our [documentation](https://docs.stripe.com/connect/get-started-connect-embedded-components).
 
-1. [`hooks/useConnect.ts`](client/hooks/Connect.tsx) shows the client side integration with Connect embedded components.
-2. [`api/account_session/route.ts`](server/routes/stripe.ts) shows the server request to `v1/account_sessions`.
+1. [`hooks/useConnect.ts`](app/hooks/useConnect.ts) shows the client side integration with Connect embedded components.
+2. [`api/account_session/route.ts`](app/api/account_session/route.ts) shows the server request to `v1/account_sessions`.
 
 ## Requirements
 
-You'll need a Stripe account to manage pet salon onboarding and payments:
+You'll need a Stripe account to manage clinic onboarding and payments:
 
 - [Sign up for free](https://dashboard.stripe.com/register), then [enable Connect](https://dashboard.stripe.com/account/applications/settings) by filling in your Connect settings.
 - Fill in the necessary information in the **Branding** section in [Connect settings](https://dashboard.stripe.com/test/settings/connect).

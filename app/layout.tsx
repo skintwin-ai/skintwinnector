@@ -23,7 +23,9 @@ function DynamicTitle() {
   useEffect(() => {
     const companyName = session?.user?.companyName || DEFAULT_BRAND_NAME;
     document.title =
-      companyName === DEFAULT_BRAND_NAME ? companyName : `(DEMO) ${companyName}`;
+      companyName === DEFAULT_BRAND_NAME
+        ? companyName
+        : `(DEMO) ${companyName}`;
   }, [session?.user?.companyName]);
 
   return null;

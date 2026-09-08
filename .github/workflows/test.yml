@@ -9,10 +9,10 @@ env:
   STRIPE_SECRET_KEY: sk_secret_key
   STRIPE_PUBLIC_KEY: pk_pub_key
   NEXT_PUBLIC_STRIPE_PUBLIC_KEY: pk_pub_key
-  APP_NAME: Furever
+  APP_NAME: SkinTwin
   PORT: 3000
   SECRET: S3cr3t
-  MONGO_URI: 'mongodb://localhost/furever'
+  MONGO_URI: 'mongodb://localhost/skintwin'
 
 jobs:
   test:

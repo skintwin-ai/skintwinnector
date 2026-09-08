@@ -186,9 +186,9 @@ export default function LandingPage() {
             />
             <div className="flex flex-col gap-y-6">
               <p className="relative text-3xl font-bold text-black">
-                “SkinTwin has transformed the way we manage our clinic!
-                Booking and payments are seamless now, and our clients love
-                the convenience!”
+                “SkinTwin has transformed the way we manage our clinic! Booking
+                and payments are seamless now, and our clients love the
+                convenience!”
                 <Quote
                   fill="var(--accent)"
                   strokeWidth={0}
@@ -224,8 +224,8 @@ export default function LandingPage() {
                 Get started today.
               </h2>
               <p className="mb-6 text-left text-xl sm:text-2xl">
-                SkinTwin is the world&apos;s leading skincare platform. Join
-                our team of clinics and expand your practice
+                SkinTwin is the world&apos;s leading skincare platform. Join our
+                team of clinics and expand your practice
               </p>
               <Link href="/signup">
                 <Button
