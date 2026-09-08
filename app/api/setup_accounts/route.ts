@@ -60,7 +60,7 @@ export async function POST() {
           },
           confirm: true,
           payment_method: 'pm_card_bypassPending',
-          description: 'Classic wash and groom',
+          description: 'Classic facial',
           receipt_email: 'receipt_test@stripe.com',
         },
         {

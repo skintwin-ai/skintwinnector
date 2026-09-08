@@ -27,30 +27,29 @@ const getPaymentMethod = (status: string) => {
 
 const customers = [
   {
-    email: 'labradoodle@stripe.com',
+    email: 'hydrating_facial@stripe.com',
     name: 'Odie',
-    description: 'Full grooming package for large Labradoodle',
+    description: 'Hydrating facial treatment',
   },
   {
-    email: 'poodle@stripe.com',
+    email: 'chemical_peel@stripe.com',
     name: 'Snoopy ',
-    description: 'Nail trimming for toy Poodle',
+    description: 'Chemical peel session',
   },
   {
-    email: 'golden_retriever@stripe.com',
+    email: 'microdermabrasion@stripe.com',
     name: 'Dug',
-    description:
-      'Hydro surge warm water shampoo & conditioner for Golden Retriever',
+    description: 'Microdermabrasion and exfoliation treatment',
   },
   {
-    email: 'siamese_cat@stripe.com',
+    email: 'acne_treatment@stripe.com',
     name: 'Garfield',
-    description: 'Flea and tick treatments for Siamese cat',
+    description: 'Acne treatment and extraction',
   },
   {
-    email: 'argente_rabbit@stripe.com',
+    email: 'skin_analysis@stripe.com',
     name: 'Bugs Bunny',
-    description: 'Fur brushing and trimming for Argente Rabbit',
+    description: 'Full skin analysis and consultation',
   },
 ];
 
@@ -108,7 +107,7 @@ const createPaymentIntentForNonCardPayments = async (
           payment_method: paymentMethod.id,
           description,
           customer: customerId,
-          statement_descriptor: 'FurEver',
+          statement_descriptor: 'SKINTWIN',
           confirmation_method: 'manual',
           confirm: true,
           payment_method_types: ['us_bank_account'],
@@ -158,7 +157,7 @@ const createPaymentIntentForNonCardPayments = async (
           payment_method: paymentMethod.id,
           description,
           customer: customerId,
-          statement_descriptor: 'FurEver',
+          statement_descriptor: 'SKINTWIN',
           confirmation_method: 'manual',
           confirm: true,
           payment_method_types: ['sepa_debit'],
@@ -237,7 +236,7 @@ export async function POST(req: NextRequest) {
                 payment_method_types: ['card'],
                 description,
                 customer: metadata.customerId,
-                statement_descriptor: 'FurEver',
+                statement_descriptor: 'SKINTWIN',
                 confirmation_method: 'manual',
                 confirm: true,
                 ...(status === 'card_uncaptured'
