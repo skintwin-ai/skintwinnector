@@ -3,13 +3,15 @@ export {default} from 'next-auth/middleware';
 export const config = {
   // specify the route you want to protect
   matcher: [
-    '/classes',
+    '/home',
+    '/clients',
     '/payments',
     '/payouts',
+    '/reports',
     '/finances',
     '/finances/cards',
+    '/finances/financing',
     '/settings',
-    '/settings/paymentmethods',
-    '/finance',
+    '/settings/:path*',
   ],
 };

@@ -1,9 +1,9 @@
 'use client';
 
-import Dog from '@/public/landing-page.jpeg';
+import Hero from '@/public/landing-page.jpeg';
 import SkinTwinLogo from '@/public/skintwin_logo.png';
 import Image from 'next/image';
-import DogHug from '@/public/testimonial.jpeg';
+import Testimonial from '@/public/testimonial.jpeg';
 import QuotePortrait from '@/public/testimonial-portrait.jpg';
 import Dashboard from '@/public/dashboard.png';
 import Stripe from '@/public/stripe.svg';
@@ -133,7 +133,7 @@ export default function LandingPage() {
         </div>
         <div className="absolute top-0 z-[-1] h-full w-full overflow-hidden bg-gradient-to-t from-black/70 to-black/40" />
         <Image
-          src={Dog}
+          src={Hero}
           alt="logo"
           placeholder="blur"
           quality={80}
@@ -144,7 +144,7 @@ export default function LandingPage() {
       </div>
 
       {/* Features section */}
-      <div className="relative bg-paw-pattern bg-[size:426px]">
+      <div className="relative bg-dot-pattern bg-[size:426px]">
         <div className="mx-auto max-w-screen-lg px-4">
           <div className="flex flex-col items-center py-12 sm:py-20">
             <h3 className="text-lg font-bold text-accent">FEATURES</h3>
@@ -177,8 +177,8 @@ export default function LandingPage() {
         <div className="mx-auto max-w-screen-lg px-4">
           <div className="flex flex-col items-center gap-20 py-12 sm:py-20 md:flex-row">
             <Image
-              src={DogHug}
-              alt="hug dog"
+              src={Testimonial}
+              alt="client testimonial"
               placeholder="blur"
               quality={100}
               sizes="100vw"
@@ -216,7 +216,7 @@ export default function LandingPage() {
       </div>
 
       {/* Get started section */}
-      <div className="relative items-center bg-accent bg-paw-pattern-white bg-[size:426px]">
+      <div className="relative items-center bg-accent bg-dot-pattern-white bg-[size:426px]">
         <div className="mx-auto max-w-screen-lg px-4">
           <div className="flex flex-col items-center gap-12 pb-40 pt-12 text-white sm:flex-row sm:pb-32 sm:pt-20">
             <div className="">

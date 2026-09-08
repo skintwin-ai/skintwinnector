@@ -162,7 +162,7 @@ export default function CreatePaymentsButton({classes}: {classes?: string}) {
         <DialogHeader>
           <DialogTitle>Create test payments</DialogTitle>
           <DialogDescription>
-            Simulate a grooming session by using a testmode payment method to{' '}
+            Simulate a treatment session by using a testmode payment method to{' '}
             <a
               target="blank"
               className="font-medium text-accent"

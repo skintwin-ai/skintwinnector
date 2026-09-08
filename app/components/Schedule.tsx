@@ -86,12 +86,12 @@ const Schedule = () => {
           {renderDayProgressBar()}
         </div>
         <div className="ml-10 flex flex-row">
-          {schedule.map(({id: id, groomer}) => (
+          {schedule.map(({id: id, provider}) => (
             <h2
               key={id}
               className="ml-8 flex flex-1 flex-row items-center space-x-1 text-lg font-bold last:hidden md:last:flex"
             >
-              <div>{groomer}</div>
+              <div>{provider}</div>
               <ChevronDown color="#6c7688" />
             </h2>
           ))}
@@ -126,16 +126,11 @@ const Schedule = () => {
                       endTime,
                       startTimeMinutes,
                       endTimeMinutes,
-                      pet,
-                      petType,
+                      client,
+                      skinType,
                       profilePhoto,
                     }) => {
-                      const badge =
-                        petType == 'dog' ? (
-                          <Badge variant="blue">Dog</Badge>
-                        ) : (
-                          <Badge variant="red">Cat</Badge>
-                        );
+                      const badge = <Badge variant="blue">{skinType}</Badge>;
                       return (
                         <div
                           key={classId}
@@ -167,11 +162,11 @@ const Schedule = () => {
                                 fill
                                 quality={50}
                                 sizes="100px"
-                                src={`/pet_photos/${profilePhoto}.jpg`}
+                                src={`/client_photos/${profilePhoto}.jpg`}
                                 alt={`Photo of ${name}`}
                                 priority
                               />
-                              {pet}
+                              {client}
                             </div>
                             {badge}
                           </div>

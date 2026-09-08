@@ -9,7 +9,7 @@ import {
   Wallet as WalletIcon,
   Coins as CoinsIcon,
   Landmark as LandmarkIcon,
-  Dog as PetsIcon,
+  Users as ClientsIcon,
   Settings as SettingsIcon,
   Sparkles as SparklesIcon,
   Menu as MenuIcon,
@@ -36,9 +36,9 @@ const navigationMenuItems = [
     paths: [],
   },
   {
-    label: 'Pets',
-    href: '/pets',
-    icon: PetsIcon,
+    label: 'Clients',
+    href: '/clients',
+    icon: ClientsIcon,
     paths: [],
   },
   {
@@ -118,8 +118,8 @@ const Nav = () => {
         <ul className="w-full flex-col">
           {navigationMenuItems
             .filter(({shouldDisplayFilter, label}) => {
-              // Hide Pets if user has custom branding
-              if (label === 'Pets' && hasCustomBranding(settings)) {
+              // Hide Clients if user has custom branding
+              if (label === 'Clients' && hasCustomBranding(settings)) {
                 return false;
               }
 

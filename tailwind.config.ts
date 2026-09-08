@@ -81,8 +81,8 @@ const config = {
         border: 'border-color',
       },
       backgroundImage: {
-        'paw-pattern': "url('/pattern.png')",
-        'paw-pattern-white': "url('/pattern-white.png')",
+        'dot-pattern': "url('/pattern.png')",
+        'dot-pattern-white': "url('/pattern-white.png')",
         'dot-grid': "url('/dot-grid.png')",
         'dot-grid-dark': "url('/dot-grid-dark.png')",
       },
