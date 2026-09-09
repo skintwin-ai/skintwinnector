@@ -25,7 +25,7 @@ export default function Screen({
       if (hasCustomBrandingValues) {
         return 'bg-screen-custom';
       } else {
-        return 'bg-paw-pattern bg-[size:426px]';
+        return 'bg-dot-pattern bg-[size:426px]';
       }
     } else {
       return 'bg-screen-background';
@@ -45,7 +45,7 @@ export default function Screen({
           <ToolsPanel />
         </div>
 
-        {/* Furever site container */}
+        {/* SkinTwin site container */}
         <div
           className={`origin-left overflow-hidden transition duration-500 ease-in-out md:h-screen
             ${open ? 'shadow-xl md:translate-x-[calc(140px+22%)] md:scale-[0.6] md:rounded-xl md:border md:border-[1.5px] lg:translate-x-[calc(125px+19%)] lg:scale-[0.66] xl:translate-x-[calc(130px+15%)] xl:scale-[0.73]' : 'h-full min-h-screen w-full flex-col sm:flex-row'}

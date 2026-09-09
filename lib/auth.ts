@@ -4,6 +4,12 @@ import dbConnect from '@/lib/dbConnect';
 import Salon from '../app/models/salon';
 import {stripe} from '@/lib/stripe';
 import {resolveControllerParams} from './utils';
+import {
+  DEFAULT_BRAND_NAME,
+  DEFAULT_BRAND_STATEMENT_DESCRIPTOR,
+  DEFAULT_BRAND_SUPPORT_EMAIL,
+  DEFAULT_BRAND_URL,
+} from '@/lib/brand';
 import Stripe from 'stripe';
 
 type SalonDoc = {
@@ -208,7 +214,7 @@ export const authOptions: AuthOptions = {
     }),
     CredentialsProvider({
       id: 'createprefilledaccount',
-      name: 'Create a prefilled Stripe account and Furever account',
+      name: 'Create a prefilled Stripe account and SkinTwin account',
       credentials: {
         email: {},
         password: {},
@@ -285,7 +291,7 @@ export const authOptions: AuthOptions = {
             business_type: 'individual',
             business_profile: {
               mcc: '7299',
-              name: credentials?.businessName || 'Furever',
+              name: credentials?.businessName || DEFAULT_BRAND_NAME,
               product_description: 'Description',
               support_address: {
                 line1: 'address_full_match',
@@ -293,10 +299,10 @@ export const authOptions: AuthOptions = {
                 state: 'CA',
                 postal_code: '94080',
               },
-              support_email: 'furever@stripe.com',
+              support_email: DEFAULT_BRAND_SUPPORT_EMAIL,
               support_phone: '0000000000',
-              support_url: 'https://furever.dev',
-              url: 'https://furever.dev',
+              support_url: DEFAULT_BRAND_URL,
+              url: DEFAULT_BRAND_URL,
             },
             individual: {
               first_name: 'Jenny',
@@ -323,12 +329,12 @@ export const authOptions: AuthOptions = {
             },
             settings: {
               card_payments: {
-                statement_descriptor_prefix: 'FurEver',
+                statement_descriptor_prefix: DEFAULT_BRAND_STATEMENT_DESCRIPTOR,
                 statement_descriptor_prefix_kana: null,
                 statement_descriptor_prefix_kanji: null,
               },
               payments: {
-                statement_descriptor: 'FurEver',
+                statement_descriptor: DEFAULT_BRAND_STATEMENT_DESCRIPTOR,
                 statement_descriptor_kana: undefined,
                 statement_descriptor_kanji: undefined,
               },
@@ -423,7 +429,7 @@ export const authOptions: AuthOptions = {
             country: credentials?.country || 'US',
             business_type: businessType,
             business_profile: {
-              name: credentials?.businessName || 'Furever Pet Salon',
+              name: credentials?.businessName || 'SkinTwin Clinic',
             },
             email: email,
             controller: resolveControllerParams({

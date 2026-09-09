@@ -36,8 +36,8 @@ import {
 import type {FeePayer, StripeDashboardType} from '@/types/account';
 
 const businessTypeLabels = {
-  individual: 'Independent salon',
-  company: 'Chain of salons',
+  individual: 'Independent practice',
+  company: 'Clinic network',
   other: 'Other',
 };
 
@@ -161,12 +161,12 @@ const stripeDashboardTypeLabels = {
 
 const paymentLossesLabels = {
   stripe: 'Stripe',
-  application: 'Furever',
+  application: 'SkinTwin',
 };
 
 const feePayerLabels = {
   account: 'Stripe collects fees from connected accounts',
-  application: 'Stripe collects fees from Furever',
+  application: 'Stripe collects fees from SkinTwin',
 };
 
 const formSchema = z.object({

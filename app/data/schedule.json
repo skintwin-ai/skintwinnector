@@ -1,101 +1,101 @@
 [
   {
     "id": "1",
-    "groomer": "Catherine",
+    "provider": "Catherine",
     "sessions": [
       {
         "id": 1,
-        "name": "Wash and groom",
+        "name": "Facial",
         "startTime": "9:30am",
         "endTime": "10:20am",
         "startTimeMinutes": 30,
         "endTimeMinutes": 80,
-        "pet": "Udon",
+        "client": "Udon",
         "profilePhoto": "udon",
-        "petType": "dog"
+        "skinType": "dry"
       },
       {
         "id": 2,
-        "name": "Deluxe wash and groom",
+        "name": "Deluxe facial",
         "startTime": "10:30am",
         "endTime": "11:30am",
         "startTimeMinutes": 90,
         "endTimeMinutes": 150,
-        "pet": "Kiba",
+        "client": "Kiba",
         "profilePhoto": "kiba",
-        "petType": "dog"
+        "skinType": "oily"
       },
       {
         "id": 3,
-        "name": "Full service – large dog",
+        "name": "Chemical peel",
         "startTime": "12:30pm",
         "endTime": "1:30pm",
         "startTimeMinutes": 210,
         "endTimeMinutes": 270,
-        "pet": "Rowdy",
+        "client": "Rowdy",
         "profilePhoto": "rowdy",
-        "petType": "dog"
+        "skinType": "combination"
       },
       {
         "id": 4,
-        "name": "Deshedding",
+        "name": "Microdermabrasion",
         "startTime": "2:00pm",
         "endTime": "2:50pm",
         "startTimeMinutes": 300,
         "endTimeMinutes": 350,
-        "pet": "Apple",
+        "client": "Apple",
         "profilePhoto": "apple",
-        "petType": "cat"
+        "skinType": "sensitive"
       }
     ]
   },
   {
     "id": "2",
-    "groomer": "Michael",
+    "provider": "Michael",
     "sessions": [
       {
         "id": 1,
-        "name": "Full service – medium cat",
+        "name": "Acne treatment",
         "startTime": "10:00am",
         "endTime": "10:45am",
         "startTimeMinutes": 60,
         "endTimeMinutes": 105,
-        "pet": "Stephen",
+        "client": "Stephen",
         "profilePhoto": "stephen",
-        "petType": "cat"
+        "skinType": "oily"
       },
       {
         "id": 2,
-        "name": "Wash and groom",
+        "name": "Facial",
         "startTime": "11:00am",
         "endTime": "11:50am",
         "startTimeMinutes": 120,
         "endTimeMinutes": 170,
-        "pet": "Juney",
+        "client": "Juney",
         "profilePhoto": "juney",
-        "petType": "dog"
+        "skinType": "dry"
       },
       {
         "id": 3,
-        "name": "Full service – medium cat",
+        "name": "Skin analysis",
         "startTime": "12:00pm",
         "endTime": "12:50pm",
         "startTimeMinutes": 180,
         "endTimeMinutes": 230,
-        "pet": "Bisco",
+        "client": "Bisco",
         "profilePhoto": "bisco",
-        "petType": "cat"
+        "skinType": "combination"
       },
       {
         "id": 4,
-        "name": "Deluxe wash and groom",
+        "name": "Deluxe facial",
         "startTime": "1:30pm",
         "endTime": "2:30pm",
         "startTimeMinutes": 270,
         "endTimeMinutes": 330,
-        "pet": "Jake",
+        "client": "Jake",
         "profilePhoto": "jake",
-        "petType": "dog"
+        "skinType": "sensitive"
       }
     ]
   }

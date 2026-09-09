@@ -10,6 +10,7 @@ import {EmbeddedComponentBorderProvider} from '@/app/hooks/EmbeddedComponentBord
 import QueryProvider from '@/app/providers/QueryProvider';
 import {useSession} from 'next-auth/react';
 import {useEffect} from 'react';
+import {DEFAULT_BRAND_NAME} from '@/lib/brand';
 
 const fontSans = FontSans({
   subsets: ['latin'],
@@ -20,9 +21,11 @@ function DynamicTitle() {
   const {data: session} = useSession();
 
   useEffect(() => {
-    const companyName = session?.user?.companyName || 'Furever';
+    const companyName = session?.user?.companyName || DEFAULT_BRAND_NAME;
     document.title =
-      companyName === 'Furever' ? companyName : `(DEMO) ${companyName}`;
+      companyName === DEFAULT_BRAND_NAME
+        ? companyName
+        : `(DEMO) ${companyName}`;
   }, [session?.user?.companyName]);
 
   return null;
@@ -54,7 +57,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <title>Furever</title>
+        <title>{DEFAULT_BRAND_NAME}</title>
       </head>
       <body
         className={cn(

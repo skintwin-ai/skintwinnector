@@ -9,14 +9,14 @@ import {
   Wallet as WalletIcon,
   Coins as CoinsIcon,
   Landmark as LandmarkIcon,
-  Dog as PetsIcon,
+  Users as ClientsIcon,
   Settings as SettingsIcon,
   Sparkles as SparklesIcon,
   Menu as MenuIcon,
   BarChart2 as ReportsIcon,
 } from 'lucide-react';
 import {Button} from '@/components/ui/button';
-import FureverLogo from '@/public/furever_logo.png';
+import SkinTwinLogo from '@/public/skintwin_logo.png';
 import Stripe from 'stripe';
 import {Switch} from '@/components/ui/switch';
 import {Label} from '@/components/ui/label';
@@ -26,6 +26,7 @@ import {hasCustomBranding} from '@/lib/utils';
 import {useGetStripeAccount} from '@/app/hooks/useGetStripeAccount';
 import * as React from 'react';
 import {arePreviewComponentsEnabled} from '../(dashboard)/utils/arePreviewComponentsEnabled';
+import {DEFAULT_BRAND_NAME} from '@/lib/brand';
 
 const navigationMenuItems = [
   {
@@ -35,9 +36,9 @@ const navigationMenuItems = [
     paths: [],
   },
   {
-    label: 'Pets',
-    href: '/pets',
-    icon: PetsIcon,
+    label: 'Clients',
+    href: '/clients',
+    icon: ClientsIcon,
     paths: [],
   },
   {
@@ -94,13 +95,13 @@ const Nav = () => {
             <Image
               width={36}
               height={36}
-              src={session?.user?.companyLogoUrl || FureverLogo}
-              alt={`${session?.user?.companyName || 'Furever'} Logo`}
+              src={session?.user?.companyLogoUrl || SkinTwinLogo}
+              alt={`${session?.user?.companyName || DEFAULT_BRAND_NAME} Logo`}
               className="h-9 w-9 sm:h-10 sm:w-10"
               sizes="100px"
               priority
             />
-            {session?.user?.companyName || 'Furever'}
+            {session?.user?.companyName || DEFAULT_BRAND_NAME}
           </div>
         </Link>
         <Button
@@ -117,8 +118,8 @@ const Nav = () => {
         <ul className="w-full flex-col">
           {navigationMenuItems
             .filter(({shouldDisplayFilter, label}) => {
-              // Hide Pets if user has custom branding
-              if (label === 'Pets' && hasCustomBranding(settings)) {
+              // Hide Clients if user has custom branding
+              if (label === 'Clients' && hasCustomBranding(settings)) {
                 return false;
               }
 

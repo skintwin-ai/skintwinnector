@@ -32,7 +32,7 @@ const SalonSchema = new Schema<Express.Request['user']>({
   changedPassword: Boolean,
   setup: Boolean,
   primaryColor: String,
-  companyName: String, // Custom company name to replace "Furever"
+  companyName: String, // Custom company name to replace "SkinTwin"
   companyLogoUrl: String, // URL to custom company logo uploaded to Stripe
 });
 

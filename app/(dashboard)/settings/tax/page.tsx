@@ -38,8 +38,8 @@ export default function Tax() {
           <Container>
             <h1 className="text-xl font-semibold">Product tax code</h1>
             <p className="text-subdued">
-              Assign a tax code to your &ldquo;Wash and groom&rdquo; service so
-              Stripe Tax calculates the correct tax on each booking.
+              Assign a tax code to your &ldquo;Facial&rdquo; service so Stripe
+              Tax calculates the correct tax on each booking.
             </p>
             <EmbeddedComponentContainer
               componentName="ProductTaxCodeSelector"
@@ -49,7 +49,7 @@ export default function Tax() {
                 initialTaxCode="txcd_20030003"
                 onTaxCodeSelect={(id) => {
                   // Normally we'd update the tax code here via an API. However since this is a demo implementation, we simply log to console
-                  console.log('Selected tax code for Wash and groom:', id);
+                  console.log('Selected tax code for Facial:', id);
                 }}
               />
             </EmbeddedComponentContainer>

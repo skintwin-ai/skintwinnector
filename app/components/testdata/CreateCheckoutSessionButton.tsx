@@ -149,7 +149,7 @@ export default function CreateCheckoutSessionButton({
         <DialogHeader>
           <DialogTitle>Create test Checkout Session</DialogTitle>
           <DialogDescription>
-            Simulate a grooming payment by creating a{' '}
+            Simulate a treatment payment by creating a{' '}
             <a
               target="blank"
               className="font-medium text-accent"
