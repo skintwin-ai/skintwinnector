@@ -11,6 +11,7 @@ import QueryProvider from '@/app/providers/QueryProvider';
 import {useSession} from 'next-auth/react';
 import {useEffect} from 'react';
 import {DEFAULT_BRAND_NAME} from '@/lib/brand';
+import {BookingProvider} from '@/app/contexts/booking/BookingContext';
 
 const fontSans = FontSans({
   subsets: ['latin'],
@@ -55,7 +56,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className="dark">
       <head>
         <title>{DEFAULT_BRAND_NAME}</title>
       </head>
@@ -70,10 +71,12 @@ export default function RootLayout({
             <DynamicTitle />
             <DynamicFavicon />
             <SettingsProvider>
-              <EmbeddedComponentBorderProvider>
-                {children}
-              </EmbeddedComponentBorderProvider>
-              <DebugMenu />
+              <BookingProvider>
+                <EmbeddedComponentBorderProvider>
+                  {children}
+                </EmbeddedComponentBorderProvider>
+                <DebugMenu />
+              </BookingProvider>
             </SettingsProvider>
           </QueryProvider>
         </NextAuthProvider>

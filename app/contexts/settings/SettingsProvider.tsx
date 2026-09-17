@@ -42,10 +42,10 @@ const updateCSSVariables = (primaryColor: string) => {
       : 'light';
 
     if (theme === 'light') {
-      root.style.setProperty('--accent-foreground', '#f4f4f5');
+      root.style.setProperty('--accent-foreground', '#f4f7ff');
       root.style.setProperty('--accent-subdued', lightSubdued);
     } else {
-      root.style.setProperty('--accent-foreground', '#14171d');
+      root.style.setProperty('--accent-foreground', '#f4f7ff');
       root.style.setProperty('--accent-subdued', darkSubdued);
     }
   }
@@ -53,11 +53,6 @@ const updateCSSVariables = (primaryColor: string) => {
 
 const restoreSettingsFromLocalStorage = (): Settings | null => {
   let value = null;
-
-  if (window.location.pathname == '/') {
-    console.log('on homepage');
-    return value;
-  }
 
   try {
     const restored: string | null = window.localStorage.getItem(STORAGE_KEY);
@@ -135,6 +130,11 @@ export const SettingsProvider: FC<SettingsProviderProps> = (props) => {
         };
       }
       setState(initialState);
+
+      const theme = initialState.theme || 'dark';
+      const root = document.querySelector(':root');
+      root && root.classList.remove('light', 'dark');
+      root && root.classList.add(theme);
     };
 
     initializeSettings();

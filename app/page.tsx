@@ -19,6 +19,8 @@ import {useSession} from 'next-auth/react';
 import Link from 'next/link';
 import React from 'react';
 import {useGetStripeAccount} from '@/app/hooks/useGetStripeAccount';
+import ThemeToggle from '@/app/components/skintwin/ThemeToggle';
+import ServiceCatalog from '@/app/components/skintwin/ServiceCatalog';
 
 function Card({
   icon,
@@ -30,7 +32,7 @@ function Card({
   description: string;
 }) {
   return (
-    <div className="flex max-w-[400px] flex-1 flex-col items-center rounded-lg border bg-white p-6 transition duration-150 hover:scale-[1.02] hover:shadow-md">
+    <div className="flex max-w-[400px] flex-1 flex-col items-center rounded-lg border border-[color:var(--hairline)] bg-screen-foreground p-6 transition duration-150 hover:scale-[1.02] hover:shadow-md">
       <div className="flex h-14 w-14 items-center justify-center rounded-full bg-accent-subdued">
         {icon}
       </div>
@@ -83,7 +85,7 @@ const AuthButtons = () => {
         <Link href="/login">
           <Button
             variant="secondary"
-            className="bg-white"
+            className="bg-screen-foreground text-primary"
             size="lg"
             data-testid="login-button"
           >
@@ -106,16 +108,19 @@ export default function LandingPage() {
     <div>
       <div className="relative">
         <div className="mx-auto flex max-w-screen-lg flex-col items-center px-4 pb-16 sm:pb-[140px]">
-          <div className="flex w-full flex-row items-center justify-center gap-3 py-4">
-            <Image
-              src={SkinTwinLogo}
-              alt="SkinTwin logo"
-              height={48}
-              width={48}
-              sizes="92px"
-              priority
-            />
-            <p className="text-2xl font-bold text-white">SkinTwin</p>
+          <div className="flex w-full flex-row items-center justify-between gap-3 py-4">
+            <div className="flex items-center gap-3">
+              <Image
+                src={SkinTwinLogo}
+                alt="SkinTwin logo"
+                height={48}
+                width={48}
+                sizes="92px"
+                priority
+              />
+              <p className="text-2xl font-bold text-white">SkinTwin</p>
+            </div>
+            <ThemeToggle />
           </div>
 
           <div className="max-w-[700px] py-8 sm:py-16">
@@ -131,7 +136,7 @@ export default function LandingPage() {
             <AuthButtons />
           </div>
         </div>
-        <div className="absolute top-0 z-[-1] h-full w-full overflow-hidden bg-gradient-to-t from-black/70 to-black/40" />
+        <div className="absolute top-0 z-[-1] h-full w-full overflow-hidden bg-gradient-to-t from-[#07112B] via-[#07112B]/75 to-[#0C1A3D]/50" />
         <Image
           src={Hero}
           alt="logo"
@@ -144,11 +149,11 @@ export default function LandingPage() {
       </div>
 
       {/* Features section */}
-      <div className="relative bg-dot-pattern bg-[size:426px]">
+      <div className="relative bg-screen-background">
         <div className="mx-auto max-w-screen-lg px-4">
           <div className="flex flex-col items-center py-12 sm:py-20">
             <h3 className="text-lg font-bold text-accent">FEATURES</h3>
-            <p className="mb-12 text-center text-3xl font-bold text-black">
+            <p className="mb-12 text-center text-3xl font-bold text-primary">
               Everything you need to manage your skincare practice.
             </p>
             <div className="flex flex-col gap-3 sm:flex-row sm:gap-6">
@@ -172,8 +177,25 @@ export default function LandingPage() {
         </div>
       </div>
 
+      {/* Treatments section */}
+      <div className="relative bg-offset">
+        <div className="mx-auto max-w-screen-lg px-4 py-12 sm:py-20">
+          <div className="mb-8 text-center">
+            <h3 className="text-lg font-bold text-accent">SKINTWIN SALON</h3>
+            <p className="text-center text-3xl font-bold text-primary">
+              Treatments that change lives.
+            </p>
+            <p className="mx-auto mt-3 max-w-2xl text-subdued">
+              The salon catalog now lives on the connect platform — book
+              facials, consults, and packages from the same clinic workspace.
+            </p>
+          </div>
+          <ServiceCatalog mode="browse" limit={6} />
+        </div>
+      </div>
+
       {/* Quote section */}
-      <div className="relative bg-accent-subdued">
+      <div className="relative bg-screen-foreground">
         <div className="mx-auto max-w-screen-lg px-4">
           <div className="flex flex-col items-center gap-20 py-12 sm:py-20 md:flex-row">
             <Image
@@ -185,7 +207,7 @@ export default function LandingPage() {
               className="w-full max-w-[450px] overflow-hidden rounded-xl object-cover shadow-lg"
             />
             <div className="flex flex-col gap-y-6">
-              <p className="relative text-3xl font-bold text-black">
+              <p className="relative text-3xl font-bold text-primary">
                 “SkinTwin has transformed the way we manage our clinic! Booking
                 and payments are seamless now, and our clients love the
                 convenience!”
@@ -216,7 +238,7 @@ export default function LandingPage() {
       </div>
 
       {/* Get started section */}
-      <div className="relative items-center bg-accent bg-dot-pattern-white bg-[size:426px]">
+      <div className="relative items-center bg-gradient-to-r from-[#07112B] to-[#1B6FE5]">
         <div className="mx-auto max-w-screen-lg px-4">
           <div className="flex flex-col items-center gap-12 pb-40 pt-12 text-white sm:flex-row sm:pb-32 sm:pt-20">
             <div className="">
@@ -251,7 +273,7 @@ export default function LandingPage() {
       </div>
 
       {/* Footer */}
-      <div className="fixed bottom-0 right-[50%] flex w-full translate-x-2/4 flex-col gap-3 bg-gradient-to-tr from-[#9160F1] to-[#11DFD4] px-2 py-3 shadow-xl sm:bottom-5 sm:w-[calc(100%-24px)] sm:flex-row sm:rounded-lg sm:px-6 lg:w-[1000px]">
+      <div className="fixed bottom-0 right-[50%] flex w-full translate-x-2/4 flex-col gap-3 bg-gradient-to-tr from-[#0C1A3D] to-[#1B6FE5] px-2 py-3 shadow-xl sm:bottom-5 sm:w-[calc(100%-24px)] sm:flex-row sm:rounded-lg sm:px-6 lg:w-[1000px]">
         <div className="flex flex-1 flex-col sm:flex-row sm:items-center sm:gap-6">
           <a href="https://stripe.com" target="_blank">
             <Image

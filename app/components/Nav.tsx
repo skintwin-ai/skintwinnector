@@ -14,6 +14,8 @@ import {
   Sparkles as SparklesIcon,
   Menu as MenuIcon,
   BarChart2 as ReportsIcon,
+  CalendarCheck as BookingsIcon,
+  Layers as ServicesIcon,
 } from 'lucide-react';
 import {Button} from '@/components/ui/button';
 import SkinTwinLogo from '@/public/skintwin_logo.png';
@@ -27,6 +29,7 @@ import {useGetStripeAccount} from '@/app/hooks/useGetStripeAccount';
 import * as React from 'react';
 import {arePreviewComponentsEnabled} from '../(dashboard)/utils/arePreviewComponentsEnabled';
 import {DEFAULT_BRAND_NAME} from '@/lib/brand';
+import ThemeToggle from '@/app/components/skintwin/ThemeToggle';
 
 const navigationMenuItems = [
   {
@@ -34,6 +37,18 @@ const navigationMenuItems = [
     href: '/home',
     icon: HomeIcon,
     paths: [],
+  },
+  {
+    label: 'Services',
+    href: '/services',
+    icon: ServicesIcon,
+    paths: [],
+  },
+  {
+    label: 'Bookings',
+    href: '/bookings',
+    icon: BookingsIcon,
+    paths: ['/bookings/intake', '/bookings/confirmation'],
   },
   {
     label: 'Clients',
@@ -104,16 +119,19 @@ const Nav = () => {
             {session?.user?.companyName || DEFAULT_BRAND_NAME}
           </div>
         </Link>
-        <Button
-          variant="ghost"
-          className="sm:hidden"
-          onClick={() => setShowMobileNavItems(!showMobileNavItems)}
-        >
-          <MenuIcon />
-        </Button>
+        <div className="flex items-center gap-1">
+          <ThemeToggle className="hidden sm:inline-flex" />
+          <Button
+            variant="ghost"
+            className="sm:hidden"
+            onClick={() => setShowMobileNavItems(!showMobileNavItems)}
+          >
+            <MenuIcon />
+          </Button>
+        </div>
       </div>
       <nav
-        className={`${showMobileNavItems ? 'flex' : 'hidden'} w-full flex-1 p-2 pb-3 shadow-xl transition sm:flex sm:p-0 sm:shadow-none`}
+        className={`${showMobileNavItems ? 'flex' : 'hidden'} w-full flex-1 flex-col p-2 pb-3 shadow-xl transition sm:flex sm:p-0 sm:shadow-none`}
       >
         <ul className="w-full flex-col">
           {navigationMenuItems
@@ -157,9 +175,12 @@ const Nav = () => {
               </li>
             ))}
         </ul>
+        <div className="mt-3 sm:hidden">
+          <ThemeToggle className="w-full" />
+        </div>
       </nav>
       <div
-        className={`${open ? 'invisible opacity-0' : 'opacity-100'} fixed bottom-2 left-1/2 w-[calc(100%-20px)] -translate-x-1/2 rounded-lg border bg-gradient-to-tr from-[#E4E5F9] to-[#DAEFF7] p-2 shadow-lg transition dark:bg-gradient-to-tr dark:from-[#2D314A] dark:to-[#233B48] sm:relative sm:bottom-0 sm:w-full sm:p-3 sm:shadow-none`}
+        className={`${open ? 'invisible opacity-0' : 'opacity-100'} fixed bottom-2 left-1/2 w-[calc(100%-20px)] -translate-x-1/2 rounded-lg border border-[color:var(--hairline)] bg-gradient-to-tr from-[#E8EEF8] to-[#D6E6FF] p-2 shadow-lg transition dark:from-[#12224A] dark:to-[#0C1A3D] sm:relative sm:bottom-0 sm:w-full sm:p-3 sm:shadow-none`}
       >
         <div className="flex hidden items-center gap-2 font-bold text-primary sm:flex">
           <SparklesIcon size={20} color="var(--primary)" />
@@ -170,7 +191,7 @@ const Nav = () => {
         </p>
         <Button
           size="sm"
-          className="hover w-full bg-gradient-to-r from-[#7F81FA] to-[#49B8EF] text-white shadow"
+          className="hover w-full bg-gradient-to-r from-[#1B6FE5] to-[#4D8EF5] text-white shadow"
           onClick={() => {
             handleOpenChange(true);
           }}

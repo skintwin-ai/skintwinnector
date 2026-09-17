@@ -17,14 +17,24 @@ const ThemePicker = () => {
   );
 
   return (
-    <RadioGroup defaultValue="option-one" id="theme" onValueChange={setTheme}>
+    <RadioGroup
+      value={settings.theme === 'light' ? 'light' : 'dark'}
+      id="theme"
+      onValueChange={setTheme}
+    >
       <div className="flex items-center space-x-2">
         <RadioGroupItem
           className="border border-primary bg-white"
           value="light"
           id="light"
+          aria-label="Light theme"
         />
-        <RadioGroupItem className="bg-[#424242]" value="dark" id="dark" />
+        <RadioGroupItem
+          className="border border-primary bg-[#0C1A3D]"
+          value="dark"
+          id="dark"
+          aria-label="Dark theme"
+        />
       </div>
     </RadioGroup>
   );

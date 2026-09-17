@@ -25,7 +25,7 @@ export default function Screen({
       if (hasCustomBrandingValues) {
         return 'bg-screen-custom';
       } else {
-        return 'bg-dot-pattern bg-[size:426px]';
+        return 'bg-screen-background';
       }
     } else {
       return 'bg-screen-background';

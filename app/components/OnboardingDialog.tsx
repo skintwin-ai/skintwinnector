@@ -42,7 +42,7 @@ const OnboardingDialog = () => {
     {
       title: 'Explore components on different pages.',
       description:
-        'Components can be found in Payments, Payouts, Finances, and My Account.',
+        'SkinTwin Services and Bookings sit alongside Payments, Payouts, Finances, and Account.',
       imageClassName: 'scale-[1.6] translate-x-[280px] translate-y-[25px]',
       cursorClassName: 'opacity-100 translate-x-[60px] translate-y-[-160px]',
       imageURL: ImageStep2,
@@ -95,7 +95,7 @@ const OnboardingDialog = () => {
       return (
         <DialogClose asChild>
           <Button
-            className="items-center gap-1 bg-gradient-to-r from-[#7F81FA] to-[#5AA5F2] hover:opacity-90"
+            className="items-center gap-1 bg-gradient-to-r from-[#1B6FE5] to-[#4D8EF5] hover:opacity-90"
             autoFocus={true}
           >
             Finish
@@ -108,7 +108,7 @@ const OnboardingDialog = () => {
     return (
       <Button
         onClick={() => setCurrentStep(currentStep + 1)}
-        className="items-center gap-1 bg-gradient-to-r from-[#7F81FA] to-[#5AA5F2] hover:opacity-90"
+        className="items-center gap-1 bg-gradient-to-r from-[#1B6FE5] to-[#4D8EF5] hover:opacity-90"
       >
         Continue
         <ArrowRight size={20} />
@@ -118,7 +118,7 @@ const OnboardingDialog = () => {
 
   const ProgressIndicator = () => {
     const progressDot = (isActive: boolean) => {
-      const bg = isActive ? 'bg-[#675DFF]' : 'bg-neutral-200';
+      const bg = isActive ? 'bg-[#1B6FE5]' : 'bg-neutral-500/40';
       return <div className={`h-2.5 w-2.5 rounded-full ${bg}`}></div>;
     };
 
@@ -135,7 +135,7 @@ const OnboardingDialog = () => {
     <>
       <Dialog open={openNux} onOpenChange={handleOpenChange}>
         <DialogContent className="w-[700px] max-w-[none] gap-0 overflow-hidden border-0 p-0 text-primary">
-          <div className="relative h-[300px] w-full overflow-hidden border-b bg-gradient-to-tr from-[#CCCCFD] to-[#B0E9F7]">
+          <div className="relative h-[300px] w-full overflow-hidden border-b bg-gradient-to-tr from-[#12224A] to-[#1B6FE5]">
             <Image
               src={onboardingSteps[currentStep].imageURL}
               alt="Image of the SkinTwin website"

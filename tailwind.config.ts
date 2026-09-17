@@ -24,7 +24,7 @@ const config = {
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
         background: 'hsl(var(--background))',
-        banner: '#0e5b2f',
+        banner: '#07112b',
         foreground: 'hsl(var(--foreground))',
         dialog: {
           background: 'var(--dialog-background)',

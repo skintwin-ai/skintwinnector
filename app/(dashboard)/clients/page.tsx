@@ -1,5 +1,6 @@
 import {Button} from '@/components/ui/button';
 import Image from 'next/image';
+import Link from 'next/link';
 import Container from '@/app/components/Container';
 import clients from '@/app/data/clients.json';
 
@@ -22,8 +23,20 @@ export default function Clients() {
 
   return (
     <>
-      <div className="flex">
-        <h1 className="flex-1 text-3xl font-bold">Clients</h1>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h1 className="flex-1 text-3xl font-bold">Clients</h1>
+          <p className="text-sm text-subdued">
+            Clinic clients and intake records. Book a SkinTwin treatment from
+            the catalog.
+          </p>
+        </div>
+        <Link href="/bookings/intake">
+          <Button className="btn-cobalt">
+            <PlusIcon size={16} className="mr-1" />
+            New intake
+          </Button>
+        </Link>
       </div>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-2 md:gap-4 lg:grid-cols-3 xl:grid-cols-4">
         {clients.map((client, key) => {
