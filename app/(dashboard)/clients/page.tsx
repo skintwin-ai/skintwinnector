@@ -31,7 +31,7 @@ export default function Clients() {
             the catalog.
           </p>
         </div>
-        <Link href="/bookings/intake">
+        <Link href="/bookings/intake?standalone=1">
           <Button className="btn-cobalt">
             <PlusIcon size={16} className="mr-1" />
             New intake

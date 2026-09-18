@@ -1,7 +1,7 @@
 'use client';
 
 import {useState} from 'react';
-import {useRouter} from 'next/navigation';
+import {useRouter, useSearchParams} from 'next/navigation';
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
 import {Label} from '@/components/ui/label';
@@ -14,7 +14,12 @@ const validatePhone = (phone: string) => /^\+?[\d\s-]{10,}$/.test(phone);
 
 const ClientIntake = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const booking = useBooking();
+  const isStandaloneIntake = searchParams.get('standalone') === '1';
+  const hasConfirmableBooking = Boolean(
+    !isStandaloneIntake && booking.appointment && booking.services.length > 0
+  );
   const [formData, setFormData] = useState({
     firstName: booking.client?.firstName || '',
     lastName: booking.client?.lastName || '',
@@ -100,7 +105,7 @@ const ClientIntake = () => {
       consentAccepted: formData.consentAccepted,
       intakeCompleted: true,
     });
-    if (booking.appointment) {
+    if (hasConfirmableBooking) {
       if (!booking.checkout.invoiceId) {
         booking.setInvoiceDetails(`APT-${Date.now().toString().slice(-8)}`, '');
       }
@@ -253,18 +258,18 @@ const ClientIntake = () => {
               type="button"
               variant="secondary"
               onClick={() =>
-                router.push(booking.appointment ? '/bookings' : '/clients')
+                router.push(hasConfirmableBooking ? '/bookings' : '/clients')
               }
               data-testid="back-to-booking"
             >
-              {booking.appointment ? 'Back to scheduling' : 'Back to clients'}
+              {hasConfirmableBooking ? 'Back to scheduling' : 'Back to clients'}
             </Button>
             <Button
               type="submit"
               className="btn-cobalt"
               data-testid="continue-to-checkout"
             >
-              {booking.appointment ? 'Confirm booking' : 'Save intake'}
+              {hasConfirmableBooking ? 'Confirm booking' : 'Save intake'}
             </Button>
           </div>
         </form>
