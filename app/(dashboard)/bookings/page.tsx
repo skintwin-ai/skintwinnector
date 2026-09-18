@@ -2,8 +2,11 @@
 
 import BookingScheduler from '@/app/components/skintwin/BookingScheduler';
 import BookingBasket from '@/app/components/skintwin/BookingBasket';
+import {useBooking} from '@/app/contexts/booking/BookingContext';
 
 export default function BookingsPage() {
+  const booking = useBooking();
+
   return (
     <>
       <div>
@@ -22,6 +25,7 @@ export default function BookingsPage() {
           <BookingBasket
             continueHref="/bookings/intake"
             continueLabel="Continue to client info"
+            continueDisabled={!booking.appointment}
           />
         </div>
       </div>

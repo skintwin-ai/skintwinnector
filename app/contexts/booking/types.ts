@@ -81,5 +81,8 @@ export interface BookingContextValue extends BookingState {
   clearCheckout: () => void;
   resetBooking: () => void;
   getTotalPrice: (servicesList: Service[]) => number;
-  getTotalDuration: (servicesList: Service[]) => number;
+  getTotalDuration: (
+    servicesList: Service[],
+    includeBuffer?: boolean
+  ) => number;
 }

@@ -153,14 +153,13 @@ export function BookingProvider({children}: {children: React.ReactNode}) {
   );
 
   const getTotalDuration = useCallback(
-    (servicesList: Service[]) => {
+    (servicesList: Service[], includeBuffer = true) => {
       return services.reduce((total, selection) => {
         const service = servicesList.find((s) => s.id === selection.serviceId);
         if (!service) return total;
 
-        let duration =
-          (service.durationMinutes + (service.bufferMinutes || 0)) *
-          selection.quantity;
+        const buffer = includeBuffer ? service.bufferMinutes || 0 : 0;
+        let duration = (service.durationMinutes + buffer) * selection.quantity;
         selection.addOns.forEach((addOnId) => {
           const addOn = servicesList.find((s) => s.id === addOnId);
           if (addOn) {

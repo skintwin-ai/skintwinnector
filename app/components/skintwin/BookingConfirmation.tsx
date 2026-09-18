@@ -1,5 +1,6 @@
 'use client';
 
+import {useEffect, useState} from 'react';
 import Link from 'next/link';
 import {Button} from '@/components/ui/button';
 import Container from '@/app/components/Container';
@@ -23,8 +24,29 @@ const BookingConfirmation = () => {
   const provider = providers.find(
     (item) => item.id === booking.appointment?.providerId
   );
+  const [fallbackConfirmationNumber] = useState(
+    () => `APT-${Date.now().toString().slice(-8)}`
+  );
   const confirmationNumber =
-    booking.checkout.invoiceId || `APT-${Date.now().toString().slice(-8)}`;
+    booking.checkout.invoiceId || fallbackConfirmationNumber;
+
+  useEffect(() => {
+    if (
+      booking.appointment &&
+      booking.client &&
+      bookedServices.length > 0 &&
+      !booking.checkout.invoiceId
+    ) {
+      booking.setInvoiceDetails(confirmationNumber, '');
+    }
+  }, [
+    bookedServices.length,
+    booking.appointment,
+    booking.client,
+    booking.checkout.invoiceId,
+    booking.setInvoiceDetails,
+    confirmationNumber,
+  ]);
 
   if (!booking.appointment || !booking.client || bookedServices.length === 0) {
     return (
@@ -116,7 +138,10 @@ const BookingConfirmation = () => {
                 {item.quantity > 1 ? ` ×${item.quantity}` : ''}
               </span>
               <span className="text-subdued">
-                {formatDuration(item.service?.durationMinutes || 0)} ·{' '}
+                {formatDuration(
+                  (item.service?.durationMinutes || 0) * item.quantity
+                )}{' '}
+                ·{' '}
                 {formatCurrency(
                   (item.service?.price || 0) * item.quantity,
                   item.service?.currency
@@ -127,7 +152,7 @@ const BookingConfirmation = () => {
         </ul>
         <div className="flex justify-between border-t border-[color:var(--hairline)] pt-3 text-sm font-medium">
           <span data-testid="confirmation-duration">
-            {formatDuration(booking.getTotalDuration(services))}
+            {formatDuration(booking.getTotalDuration(services, false))}
           </span>
           <span data-testid="confirmation-total">
             {formatCurrency(booking.getTotalPrice(services))}

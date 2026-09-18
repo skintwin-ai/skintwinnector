@@ -100,22 +100,15 @@ const ClientIntake = () => {
       consentAccepted: formData.consentAccepted,
       intakeCompleted: true,
     });
-    router.push('/bookings/confirmation');
+    if (booking.appointment) {
+      if (!booking.checkout.invoiceId) {
+        booking.setInvoiceDetails(`APT-${Date.now().toString().slice(-8)}`, '');
+      }
+      router.push('/bookings/confirmation');
+      return;
+    }
+    router.push('/clients');
   };
-
-  if (!booking.appointment) {
-    return (
-      <Container className="panel-accent-top space-y-3 border-[color:var(--hairline)]">
-        <h2 className="text-xl font-semibold">No appointment scheduled</h2>
-        <p className="text-subdued">
-          Schedule a date, time, and provider first.
-        </p>
-        <Button onClick={() => router.push('/bookings')}>
-          Schedule appointment
-        </Button>
-      </Container>
-    );
-  }
 
   return (
     <div className="space-y-4">
@@ -259,17 +252,19 @@ const ClientIntake = () => {
             <Button
               type="button"
               variant="secondary"
-              onClick={() => router.push('/bookings')}
+              onClick={() =>
+                router.push(booking.appointment ? '/bookings' : '/clients')
+              }
               data-testid="back-to-booking"
             >
-              Back to scheduling
+              {booking.appointment ? 'Back to scheduling' : 'Back to clients'}
             </Button>
             <Button
               type="submit"
               className="btn-cobalt"
               data-testid="continue-to-checkout"
             >
-              Confirm booking
+              {booking.appointment ? 'Confirm booking' : 'Save intake'}
             </Button>
           </div>
         </form>

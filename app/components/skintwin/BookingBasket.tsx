@@ -14,9 +14,11 @@ const services = servicesData as Service[];
 const BookingBasket = ({
   continueHref = '/bookings',
   continueLabel = 'Schedule appointment',
+  continueDisabled = false,
 }: {
   continueHref?: string;
   continueLabel?: string;
+  continueDisabled?: boolean;
 }) => {
   const booking = useBooking();
   const selected = booking.services
@@ -27,7 +29,7 @@ const BookingBasket = ({
     .filter((item) => item.service);
 
   const totalPrice = booking.getTotalPrice(services);
-  const totalDuration = booking.getTotalDuration(services);
+  const totalDuration = booking.getTotalDuration(services, false);
 
   if (selected.length === 0) {
     return (
@@ -63,7 +65,10 @@ const BookingBasket = ({
             <div>
               <p className="font-medium">{item.service?.name}</p>
               <p className="text-sm text-subdued">
-                {formatDuration(item.service?.durationMinutes || 0)} ·{' '}
+                {formatDuration(
+                  (item.service?.durationMinutes || 0) * item.quantity
+                )}{' '}
+                ·{' '}
                 {formatCurrency(
                   (item.service?.price || 0) * item.quantity,
                   item.service?.currency
@@ -116,9 +121,15 @@ const BookingBasket = ({
         </span>
         <span>{formatCurrency(totalPrice)}</span>
       </div>
-      <Link href={continueHref}>
-        <Button className="btn-cobalt w-full">{continueLabel}</Button>
-      </Link>
+      {continueDisabled ? (
+        <Button className="btn-cobalt w-full" disabled>
+          {continueLabel}
+        </Button>
+      ) : (
+        <Link href={continueHref}>
+          <Button className="btn-cobalt w-full">{continueLabel}</Button>
+        </Link>
+      )}
     </Container>
   );
 };

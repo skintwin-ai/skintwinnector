@@ -34,8 +34,16 @@ export function formatDuration(minutes: number) {
   return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
 }
 
+export function toLocalDateKey(date: Date) {
+  const year = date.getFullYear();
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const day = date.getDate().toString().padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 export function formatAppointmentDate(dateStr: string) {
-  const date = new Date(`${dateStr}T00:00:00`);
+  const [year, month, day] = dateStr.split('-').map(Number);
+  const date = new Date(year, month - 1, day);
   return date.toLocaleDateString('en-US', {
     weekday: 'short',
     month: 'short',

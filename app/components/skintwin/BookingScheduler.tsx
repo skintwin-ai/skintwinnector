@@ -1,14 +1,22 @@
 'use client';
 
-import {useMemo, useState} from 'react';
+import {useEffect, useMemo, useState} from 'react';
 import {useRouter} from 'next/navigation';
 import {Button} from '@/components/ui/button';
 import Container from '@/app/components/Container';
 import {useBooking} from '@/app/contexts/booking/BookingContext';
-import type {Provider, Service} from '@/app/contexts/booking/types';
+import type {
+  Appointment,
+  Provider,
+  Service,
+} from '@/app/contexts/booking/types';
 import servicesData from '@/app/data/services.json';
 import providersData from '@/app/data/providers.json';
-import {formatAppointmentDate, formatDuration} from '@/lib/salon';
+import {
+  formatAppointmentDate,
+  formatDuration,
+  toLocalDateKey,
+} from '@/lib/salon';
 
 const services = servicesData as Service[];
 const providers = providersData as Provider[];
@@ -38,12 +46,10 @@ const BookingScheduler = () => {
   const totalDuration = booking.getTotalDuration(services);
 
   const availableProviders = useMemo(() => {
-    const requiredTypes = new Set<string>();
-    bookedServices.forEach((item) => {
-      item.service?.providerTypes.forEach((type) => requiredTypes.add(type));
-    });
-    return providers.filter(
-      (provider) => requiredTypes.size === 0 || requiredTypes.has(provider.type)
+    return providers.filter((provider) =>
+      bookedServices.every((item) =>
+        Boolean(item.service?.providerTypes.includes(provider.type))
+      )
     );
   }, [bookedServices]);
 
@@ -54,7 +60,7 @@ const BookingScheduler = () => {
       const date = new Date(today);
       date.setDate(today.getDate() + i);
       if (date.getDay() !== 0) {
-        dates.push(date.toISOString().split('T')[0]);
+        dates.push(toLocalDateKey(date));
       }
     }
     return dates;
@@ -82,9 +88,14 @@ const BookingScheduler = () => {
     return slots;
   }, [selectedDate, selectedProvider]);
 
-  const handleContinue = () => {
-    if (!selectedDate || !selectedTime || !selectedProvider) {
-      return;
+  const selectedSlot = timeSlots.find((slot) => slot.time === selectedTime);
+  const canContinue = Boolean(
+    selectedDate && selectedTime && selectedProvider && selectedSlot?.available
+  );
+
+  const appointmentDraft = useMemo((): Appointment | null => {
+    if (!canContinue) {
+      return null;
     }
 
     const [hours, mins] = selectedTime.split(':').map(Number);
@@ -95,14 +106,69 @@ const BookingScheduler = () => {
       .toString()
       .padStart(2, '0')}`;
 
-    booking.setAppointment({
+    return {
       date: selectedDate,
       startTime: selectedTime,
       endTime,
       providerId: selectedProvider,
       totalDurationMinutes: totalDuration,
-    });
+    };
+  }, [
+    canContinue,
+    selectedDate,
+    selectedProvider,
+    selectedTime,
+    totalDuration,
+  ]);
 
+  useEffect(() => {
+    if (
+      selectedProvider &&
+      !availableProviders.some((provider) => provider.id === selectedProvider)
+    ) {
+      setSelectedProvider('');
+    }
+  }, [availableProviders, selectedProvider]);
+
+  useEffect(() => {
+    if (selectedTime && selectedSlot && !selectedSlot.available) {
+      setSelectedTime('');
+    }
+  }, [selectedSlot, selectedTime]);
+
+  useEffect(() => {
+    if (!appointmentDraft) {
+      if (booking.appointment) {
+        booking.clearAppointment();
+      }
+      return;
+    }
+
+    const current = booking.appointment;
+    if (
+      current?.date === appointmentDraft.date &&
+      current.startTime === appointmentDraft.startTime &&
+      current.endTime === appointmentDraft.endTime &&
+      current.providerId === appointmentDraft.providerId &&
+      current.totalDurationMinutes === appointmentDraft.totalDurationMinutes
+    ) {
+      return;
+    }
+
+    booking.setAppointment(appointmentDraft);
+  }, [
+    appointmentDraft,
+    booking.appointment,
+    booking.clearAppointment,
+    booking.setAppointment,
+  ]);
+
+  const handleContinue = () => {
+    if (!appointmentDraft) {
+      return;
+    }
+
+    booking.setAppointment(appointmentDraft);
     router.push('/bookings/intake');
   };
 
@@ -200,7 +266,7 @@ const BookingScheduler = () => {
               data-available={slot.available}
               disabled={!slot.available}
               className={`rounded-md border px-2 py-2 text-sm transition disabled:cursor-not-allowed disabled:opacity-40 ${
-                selectedTime === slot.time
+                selectedTime === slot.time && slot.available
                   ? 'border-accent bg-accent-subdued text-accent'
                   : 'border-[color:var(--hairline)] bg-offset text-primary hover:border-accent'
               }`}
@@ -210,7 +276,7 @@ const BookingScheduler = () => {
             </button>
           ))}
         </div>
-        {selectedTime && (
+        {selectedTime && selectedSlot?.available && (
           <p className="text-sm text-subdued" data-testid="selected-time">
             Selected: {selectedTime} · {formatDuration(totalDuration)}
           </p>
@@ -228,7 +294,7 @@ const BookingScheduler = () => {
         <Button
           className="btn-cobalt"
           onClick={handleContinue}
-          disabled={!selectedDate || !selectedTime || !selectedProvider}
+          disabled={!canContinue}
           data-testid="continue-to-intake"
         >
           Continue to client info
