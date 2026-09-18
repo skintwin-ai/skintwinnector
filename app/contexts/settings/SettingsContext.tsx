@@ -5,7 +5,7 @@ import {OverlayOption} from '@stripe/connect-js';
 
 export const defaultSettings: Settings = {
   locale: 'en-US',
-  theme: 'light',
+  theme: 'dark',
   overlay: 'dialog',
 };
 

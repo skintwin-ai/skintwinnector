@@ -64,7 +64,7 @@ export default function SignupForm() {
                 <FormLabel>Email</FormLabel>
                 <FormControl>
                   <Input
-                    className="rounded-md border border-gray-300 p-2 placeholder:text-gray-400"
+                    className="rounded-md border border-[color:var(--hairline)] bg-offset p-2 placeholder:text-subdued"
                     placeholder="jenny.rosen@example.com"
                     {...field}
                   />
@@ -83,7 +83,7 @@ export default function SignupForm() {
                 <FormLabel>Password</FormLabel>
                 <FormControl>
                   <Input
-                    className="rounded-md border border-gray-300 p-2 placeholder:text-gray-400"
+                    className="rounded-md border border-[color:var(--hairline)] bg-offset p-2 placeholder:text-subdued"
                     type="password"
                     {...field}
                   />

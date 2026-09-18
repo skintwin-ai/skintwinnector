@@ -68,7 +68,7 @@ export default function LoginForm() {
                 <FormControl>
                   <Input
                     autoFocus
-                    className="rounded-md border border-gray-300 p-2 placeholder:text-gray-400"
+                    className="rounded-md border border-[color:var(--hairline)] bg-offset p-2 placeholder:text-subdued"
                     placeholder="jenny.rosen@example.com"
                     data-testid="email-input"
                     {...field}
@@ -88,7 +88,7 @@ export default function LoginForm() {
                 <FormLabel>Password</FormLabel>
                 <FormControl>
                   <Input
-                    className="rounded-md border border-gray-300 p-2 placeholder:text-gray-400"
+                    className="rounded-md border border-[color:var(--hairline)] bg-offset p-2 placeholder:text-subdued"
                     type="password"
                     data-testid="password-input"
                     {...field}

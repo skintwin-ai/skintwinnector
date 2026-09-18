@@ -13,10 +13,14 @@ import {redirect} from 'next/navigation';
 import Container from '@/app/components/Container';
 import {CapitalFinancingPromotionSection} from '@/app/components/CapitalFinancingPromotionSection';
 import {useGetStripeAccount} from '@/app/hooks/useGetStripeAccount';
+import Link from 'next/link';
+import {Button} from '@/components/ui/button';
+import ServiceCatalog from '@/app/components/skintwin/ServiceCatalog';
+import {isUiPreview} from '@/lib/uiPreview';
 
 export default function Dashboard() {
   const {data: session} = useSession();
-  if (!session) {
+  if (!session && !isUiPreview) {
     redirect('/');
   }
   const {stripeAccount} = useGetStripeAccount();
@@ -37,9 +41,14 @@ export default function Dashboard() {
 
   return (
     <>
-      <h1 className="text-3xl font-bold" data-testid="title-header">
-        Woof woof, {stripeAccount?.individual?.first_name || 'human'}!
-      </h1>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <h1 className="text-3xl font-bold" data-testid="title-header">
+          Welcome back, {stripeAccount?.individual?.first_name || 'clinician'}
+        </h1>
+        <Link href="/services">
+          <Button className="btn-cobalt">Book a treatment</Button>
+        </Link>
+      </div>
       <div className={`${showBanner ? 'flex' : 'hidden'} flex-col`}>
         <EmbeddedComponentContainer
           componentName="NotificationBanner"
@@ -74,6 +83,20 @@ export default function Dashboard() {
             <CustomersWidget />
           </div>
         </div>
+      </div>
+      <div className="space-y-3">
+        <div className="flex items-end justify-between gap-3">
+          <div>
+            <h2 className="text-lg font-bold">SkinTwin treatments</h2>
+            <p className="text-sm text-subdued">
+              Featured salon services available to book from this clinic.
+            </p>
+          </div>
+          <Link href="/services" className="text-sm font-medium text-accent">
+            View catalog
+          </Link>
+        </div>
+        <ServiceCatalog mode="book" limit={3} />
       </div>
     </>
   );

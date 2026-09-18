@@ -1,13 +1,13 @@
-export const defaultPrimaryColor = '#27AE60';
+export const defaultPrimaryColor = '#1B6FE5';
 
 export const LightTheme = {
   fontFamily: 'Sohne, inherit',
   colorPrimary: defaultPrimaryColor,
   colorBackground: '#ffffff',
-  colorBorder: '#D8DEE4',
+  colorBorder: '#C5D4EA',
 
   buttonPrimaryColorBackground: defaultPrimaryColor,
-  buttonPrimaryColorText: '#f4f4f5',
+  buttonPrimaryColorText: '#f4f7ff',
 
   badgeSuccessColorBackground: '#D6FCE6',
   badgeSuccessColorText: '#1E884B',
@@ -17,27 +17,27 @@ export const LightTheme = {
   badgeWarningColorText: '#C95B4D',
   badgeWarningColorBorder: '#FFD28C',
 
-  overlayBackdropColor: 'rgba(0,0,0,0.3)',
+  overlayBackdropColor: 'rgba(7,17,43,0.35)',
 };
 
 export const DarkTheme = {
   fontFamily: 'Sohne, inherit',
   colorPrimary: defaultPrimaryColor,
-  colorBackground: '#1e222a',
-  colorBorder: '#4b5563',
+  colorBackground: '#0C1A3D',
+  colorBorder: '#1E3A6E',
 
-  colorText: '#C9CED8',
-  colorSecondaryText: '#8C99AD',
+  colorText: '#E8EEF8',
+  colorSecondaryText: '#8FA3C4',
 
   buttonPrimaryColorBackground: defaultPrimaryColor,
-  buttonPrimaryColorText: '#f4f4f5',
+  buttonPrimaryColorText: '#f4f7ff',
 
-  buttonSecondaryColorBackground: '#292E38',
-  buttonSecondaryColorText: '#C9CED8',
+  buttonSecondaryColorBackground: '#12224A',
+  buttonSecondaryColorText: '#E8EEF8',
 
-  badgeNeutralColorBackground: '#252B37',
-  badgeNeutralColorText: '#E2E5F0',
-  badgeNeutralColorBorder: '#3E4554',
+  badgeNeutralColorBackground: '#12224A',
+  badgeNeutralColorText: '#E8EEF8',
+  badgeNeutralColorBorder: '#1E3A6E',
 
   badgeSuccessColorBackground: '#0c4223',
   badgeSuccessColorText: '#43C67A',
@@ -51,5 +51,5 @@ export const DarkTheme = {
   badgeDangerColorText: '#C95B4D',
   badgeDangerColorBorder: '#632013',
 
-  overlayBackdropColor: 'rgba(0,0,0,0.5)',
+  overlayBackdropColor: 'rgba(0,0,0,0.55)',
 };

@@ -1,0 +1,78 @@
+[
+  {
+    "id": "prv-001",
+    "name": "Amara Johnson",
+    "title": "Senior Esthetician",
+    "type": "esthetician",
+    "bio": "With over 8 years of experience in skincare, Amara specializes in customized facials and hydration therapies.",
+    "specializations": ["facials", "treatments", "add-ons"],
+    "certifications": ["CIDESCO Diploma", "Advanced Skincare"],
+    "availability": {
+      "monday": { "start": "09:00", "end": "17:00" },
+      "tuesday": { "start": "09:00", "end": "17:00" },
+      "wednesday": { "start": "09:00", "end": "17:00" },
+      "thursday": { "start": "09:00", "end": "17:00" },
+      "friday": { "start": "09:00", "end": "15:00" },
+      "saturday": null,
+      "sunday": null
+    },
+    "image": "amara_johnson.png"
+  },
+  {
+    "id": "prv-002",
+    "name": "Dr. Temi Okonkwo",
+    "title": "Skin Specialist",
+    "type": "specialist",
+    "bio": "Dr. Temi is a certified dermatology specialist with expertise in anti-aging treatments and skin consultations.",
+    "specializations": ["consultations", "treatments", "packages"],
+    "certifications": ["MD Dermatology", "Anti-Aging Specialist", "Laser Treatment Certified"],
+    "availability": {
+      "monday": { "start": "10:00", "end": "18:00" },
+      "tuesday": { "start": "10:00", "end": "18:00" },
+      "wednesday": null,
+      "thursday": { "start": "10:00", "end": "18:00" },
+      "friday": { "start": "10:00", "end": "18:00" },
+      "saturday": { "start": "10:00", "end": "14:00" },
+      "sunday": null
+    },
+    "image": "temi_okonkwo.png"
+  },
+  {
+    "id": "prv-003",
+    "name": "Chioma Adeyemi",
+    "title": "Esthetician",
+    "type": "esthetician",
+    "bio": "Chioma is passionate about helping clients achieve their best skin through personalized treatments and care.",
+    "specializations": ["facials", "add-ons"],
+    "certifications": ["ITEC Beauty Therapy", "Facial Specialist"],
+    "availability": {
+      "monday": { "start": "08:00", "end": "16:00" },
+      "tuesday": { "start": "08:00", "end": "16:00" },
+      "wednesday": { "start": "08:00", "end": "16:00" },
+      "thursday": { "start": "08:00", "end": "16:00" },
+      "friday": { "start": "08:00", "end": "16:00" },
+      "saturday": { "start": "09:00", "end": "13:00" },
+      "sunday": null
+    },
+    "image": "chioma_adeyemi.png"
+  },
+  {
+    "id": "prv-004",
+    "name": "Ngozi Eze",
+    "title": "Senior Specialist",
+    "type": "specialist",
+    "bio": "Ngozi brings 12 years of experience in advanced skincare treatments and bridal preparations.",
+    "specializations": ["consultations", "treatments", "packages", "facials"],
+    "certifications": ["Advanced Esthetics", "Bridal Specialist", "Acne Treatment Certified"],
+    "availability": {
+      "monday": { "start": "11:00", "end": "19:00" },
+      "tuesday": { "start": "11:00", "end": "19:00" },
+      "wednesday": { "start": "11:00", "end": "19:00" },
+      "thursday": { "start": "11:00", "end": "19:00" },
+      "friday": null,
+      "saturday": { "start": "10:00", "end": "16:00" },
+      "sunday": null
+    },
+    "image": "ngozi_eze.png"
+  }
+]

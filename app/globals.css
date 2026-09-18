@@ -6,92 +6,100 @@
   *,
   ::before,
   ::after {
-    @apply dark:border-neutral-700;
+    @apply dark:border-[color:var(--hairline)];
   }
 
   :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 100%;
+    --background: 226 72% 10%;
+    --foreground: 226 67% 14%;
 
-    --dialog-background: rgba(197, 197, 197, 0.7);
-    --dialog-content: white;
+    --dialog-background: rgba(7, 17, 43, 0.72);
+    --dialog-content: 226, 67%, 14%;
 
-    --screen-background: white;
-    --screen-foreground: white;
+    --screen-background: #07112b;
+    --screen-foreground: #0c1a3d;
 
-    --embedded-component: #7f81fa;
-    --embedded-component-hover: #6c6ee6;
+    --embedded-component: #1b6fe5;
+    --embedded-component-hover: #1558c4;
 
-    --offset: #f5f6f8;
+    --offset: #0a1733;
 
-    --accent: #27ae60;
-    --accent-foreground: #f4f4f5;
-    --accent-subdued: #e9f7ef;
+    --accent: #1b6fe5;
+    --accent-foreground: #f4f7ff;
+    --accent-subdued: rgba(27, 111, 229, 0.16);
 
-    --primary: #353a44;
-    --subdued: #596171;
-
-    --radius: 0.5rem;
-
-    --success: #d6fce6;
-    --success-border: #94d5af;
-    --success-foreground: #1e884b;
-
-    --destructive: #e74c3c;
-    --destructive-foreground: #e9f7ef;
-    --ring: 145 63.4% 41.8%;
-
-    --tools-background: white;
-  }
-  .dark {
-    --background: 220 18.37% 9.61%;
-    --foreground: 220 16.67% 14.12%;
-
-    --screen-background: #1b1e25;
-    --screen-foreground: #1e222a;
-
-    --dialog-content: 220, 18.37%, 9.61%;
-
-    --dialog-background: rgba(0, 0, 0, 0.7);
-
-    --offset: #1e222a;
-    --accent: #27ae60;
-    --accent-foreground: #14171d;
-    --accent-subdued: rgba(39, 174, 96, 0.1);
-
-    --primary: #c9ced8;
-    --subdued: #8c99ad;
+    --primary: #e8eef8;
+    --subdued: #8fa3c4;
 
     --radius: 0.5rem;
 
     --success: #0c4223;
     --success-border: #156236;
-    --success-foreground: #27ae60;
+    --success-foreground: #43c67a;
+
+    --destructive: #e74c3c;
+    --destructive-foreground: #e9f7ef;
+    --ring: 217 80% 50%;
+
+    --tools-background: #0a1428;
+    --hairline: rgba(184, 214, 255, 0.14);
+    --regima-glow: #5ec8ff;
+    --regima-bright: #4d8ef5;
+    --regima-ice: #d6e6ff;
+  }
+  .dark {
+    --background: 226 72% 10%;
+    --foreground: 226 67% 14%;
+
+    --screen-background: #07112b;
+    --screen-foreground: #0c1a3d;
+
+    --dialog-content: 226, 67%, 14%;
+
+    --dialog-background: rgba(0, 0, 0, 0.7);
+
+    --offset: #0a1733;
+    --accent: #1b6fe5;
+    --accent-foreground: #f4f7ff;
+    --accent-subdued: rgba(27, 111, 229, 0.16);
+
+    --primary: #e8eef8;
+    --subdued: #8fa3c4;
+
+    --radius: 0.5rem;
+
+    --success: #0c4223;
+    --success-border: #156236;
+    --success-foreground: #43c67a;
 
     --destructive: #400a00;
     --destructive-border: #632013;
     --destructive-foreground: #e9f7ef;
-    --ring: 145 63.4% 41.8%;
-    --tools-background: #1b1e25;
+    --ring: 217 80% 50%;
+    --tools-background: #0a1428;
+    --hairline: rgba(184, 214, 255, 0.14);
+    --regima-glow: #5ec8ff;
+    --regima-bright: #4d8ef5;
+    --regima-ice: #d6e6ff;
   }
   .light {
-    --background: 0 0% 100%;
+    --background: 216 56% 97%;
     --foreground: 0 0% 100%;
 
-    --dialog-background: rgba(197, 197, 197, 70%);
+    --dialog-background: rgba(12, 26, 61, 0.35);
     --dialog-content: white;
 
-    --screen-background: white;
-    --screen-foreground: white;
+    --screen-background: #eef3fa;
+    --screen-foreground: #ffffff;
 
-    --offset: #f5f6f8;
+    --offset: #e8eef8;
 
-    --accent: #27ae60;
-    --accent-foreground: #f4f4f5;
-    --accent-subdued: #e9f7ef;
+    --accent: #1b6fe5;
+    --accent-foreground: #f4f7ff;
+    --accent-subdued: rgba(27, 111, 229, 0.12);
 
-    --primary: #353a44;
-    --subdued: #596171;
+    --primary: #0c1a3d;
+    --subdued: #4a5a78;
 
     --radius: 0.5rem;
 
@@ -101,9 +109,13 @@
 
     --destructive: #e74c3c;
     --destructive-foreground: #e9f7ef;
-    --ring: 145 63.4% 41.8%;
+    --ring: 217 80% 50%;
 
     --tools-background: white;
+    --hairline: rgba(12, 26, 61, 0.1);
+    --regima-glow: #1b6fe5;
+    --regima-bright: #1558c4;
+    --regima-ice: #0c1a3d;
   }
 }
 
@@ -146,5 +158,39 @@
     font-weight: 600;
     font-display: swap;
     src: url(/fonts/Sohne-Halbfett.otf) format('opentype');
+  }
+}
+
+@layer components {
+  .btn-cobalt {
+    background: linear-gradient(180deg, #4d8ef5 0%, #1b6fe5 100%);
+    color: #f4f7ff;
+    border: 1px solid rgba(27, 111, 229, 0.6);
+    box-shadow:
+      0 0 0 1px rgba(94, 200, 255, 0.18) inset,
+      0 6px 18px rgba(27, 111, 229, 0.35);
+  }
+  .btn-cobalt:hover {
+    filter: brightness(1.08);
+  }
+  .panel-accent-top {
+    box-shadow: inset 0 1px 0 0 rgba(94, 200, 255, 0.28);
+  }
+  .section-rule::after {
+    content: '';
+    display: block;
+    width: 36px;
+    height: 2px;
+    margin-top: 10px;
+    background: linear-gradient(90deg, #4d8ef5 0%, transparent 100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
   }
 }

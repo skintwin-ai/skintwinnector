@@ -12,6 +12,7 @@ import {hasCustomBranding} from '@/lib/utils';
 import {SettingsContext} from '../contexts/settings';
 import {useContext} from 'react';
 import {DEFAULT_BRAND_NAME} from '@/lib/brand';
+import ThemeToggle from '@/app/components/skintwin/ThemeToggle';
 
 export default function AuthLayout({
   children,
@@ -32,7 +33,7 @@ export default function AuthLayout({
         Signed in as <span className="font-medium">{data?.user?.email}</span>.{' '}
         <Button
           variant="link"
-          className="rounded-none border-b border-black/20 p-0 text-sm text-secondary"
+          className="border-primary/20 rounded-none border-b p-0 text-sm text-secondary"
           onClick={() => signOut({callbackUrl: '/'})}
         >
           Sign out
@@ -43,10 +44,10 @@ export default function AuthLayout({
 
   return (
     <div
-      className={`min-h-screen ${hasCustomBrandingValues ? 'bg-screen-custom' : 'bg-dot-pattern bg-[size:426px]'} py-4 sm:py-16`}
+      className={`min-h-screen bg-screen-background ${hasCustomBrandingValues ? 'bg-screen-custom' : ''} py-4 sm:py-16`}
     >
       <div className="mx-auto flex max-w-[450px] flex-col gap-6 p-3 sm:gap-6">
-        <div className="mb-6 flex w-full justify-center">
+        <div className="mb-6 flex w-full items-center justify-between">
           <Link href="/">
             <div className="flex items-center gap-4 text-3xl font-bold text-primary">
               <Image
@@ -59,6 +60,7 @@ export default function AuthLayout({
               {data?.user?.companyName || DEFAULT_BRAND_NAME}
             </div>
           </Link>
+          <ThemeToggle />
         </div>
         <Container className="no-scrollbar w-full rounded-xl px-5 py-5">
           {children}
@@ -71,7 +73,7 @@ export default function AuthLayout({
           <p className="text-center text-sm text-subdued">
             This site is a demo for{' '}
             <a
-              className="border-b border-black/20 font-medium hover:border-black/70"
+              className="border-primary/20 hover:border-primary/70 border-b font-medium"
               href="https://docs.stripe.com/connect/get-started-connect-embedded-components"
               target="_blank"
             >
