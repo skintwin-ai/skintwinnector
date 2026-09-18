@@ -59,13 +59,25 @@ export function BookingProvider({children}: {children: React.ReactNode}) {
   }, []);
 
   const removeService = useCallback((serviceId: string) => {
-    setServices((prev) => prev.filter((s) => s.serviceId !== serviceId));
+    setServices((prev) => {
+      const next = prev.filter((s) => s.serviceId !== serviceId);
+      if (next.length === 0) {
+        setAppointmentState(null);
+      }
+      return next;
+    });
   }, []);
 
   const updateServiceQuantity = useCallback(
     (serviceId: string, quantity: number) => {
       if (quantity <= 0) {
-        setServices((prev) => prev.filter((s) => s.serviceId !== serviceId));
+        setServices((prev) => {
+          const next = prev.filter((s) => s.serviceId !== serviceId);
+          if (next.length === 0) {
+            setAppointmentState(null);
+          }
+          return next;
+        });
         return;
       }
       setServices((prev) =>
@@ -77,6 +89,7 @@ export function BookingProvider({children}: {children: React.ReactNode}) {
 
   const clearServices = useCallback(() => {
     setServices([]);
+    setAppointmentState(null);
   }, []);
 
   const setAppointment = useCallback((apt: Appointment) => {

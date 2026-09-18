@@ -94,7 +94,7 @@ const BookingScheduler = () => {
   );
 
   const appointmentDraft = useMemo((): Appointment | null => {
-    if (!canContinue) {
+    if (!canContinue || booking.services.length === 0) {
       return null;
     }
 
@@ -114,6 +114,7 @@ const BookingScheduler = () => {
       totalDurationMinutes: totalDuration,
     };
   }, [
+    booking.services.length,
     canContinue,
     selectedDate,
     selectedProvider,

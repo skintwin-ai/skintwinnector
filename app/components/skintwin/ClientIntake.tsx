@@ -1,6 +1,6 @@
 'use client';
 
-import {useState} from 'react';
+import {useEffect, useState} from 'react';
 import {useRouter, useSearchParams} from 'next/navigation';
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
@@ -31,6 +31,13 @@ const ClientIntake = () => {
   const [isLookingUp, setIsLookingUp] = useState(false);
   const [lookupEmail, setLookupEmail] = useState('');
   const [clientFound, setClientFound] = useState(false);
+
+  useEffect(() => {
+    if (!isStandaloneIntake || !booking.appointment) {
+      return;
+    }
+    booking.clearAppointment();
+  }, [booking.appointment, booking.clearAppointment, isStandaloneIntake]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const {name, value, type, checked} = e.target;
@@ -111,6 +118,9 @@ const ClientIntake = () => {
       }
       router.push('/bookings/confirmation');
       return;
+    }
+    if (booking.appointment) {
+      booking.clearAppointment();
     }
     router.push('/clients');
   };
