@@ -24,6 +24,7 @@ const providers = providersData as Provider[];
 const BookingScheduler = () => {
   const router = useRouter();
   const booking = useBooking();
+  const {clearAppointment, setAppointment} = booking;
   const [selectedDate, setSelectedDate] = useState(
     booking.appointment?.date || ''
   );
@@ -140,7 +141,7 @@ const BookingScheduler = () => {
   useEffect(() => {
     if (!appointmentDraft) {
       if (booking.appointment) {
-        booking.clearAppointment();
+        clearAppointment();
       }
       return;
     }
@@ -156,13 +157,8 @@ const BookingScheduler = () => {
       return;
     }
 
-    booking.setAppointment(appointmentDraft);
-  }, [
-    appointmentDraft,
-    booking.appointment,
-    booking.clearAppointment,
-    booking.setAppointment,
-  ]);
+    setAppointment(appointmentDraft);
+  }, [appointmentDraft, booking.appointment, clearAppointment, setAppointment]);
 
   const handleContinue = () => {
     if (!appointmentDraft) {

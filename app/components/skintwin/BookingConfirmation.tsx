@@ -15,6 +15,7 @@ const providers = providersData as Provider[];
 
 const BookingConfirmation = () => {
   const booking = useBooking();
+  const {setInvoiceDetails} = booking;
   const bookedServices = booking.services
     .map((selection) => ({
       ...selection,
@@ -37,15 +38,15 @@ const BookingConfirmation = () => {
       bookedServices.length > 0 &&
       !booking.checkout.invoiceId
     ) {
-      booking.setInvoiceDetails(confirmationNumber, '');
+      setInvoiceDetails(confirmationNumber, '');
     }
   }, [
     bookedServices.length,
     booking.appointment,
     booking.client,
     booking.checkout.invoiceId,
-    booking.setInvoiceDetails,
     confirmationNumber,
+    setInvoiceDetails,
   ]);
 
   if (!booking.appointment || !booking.client || bookedServices.length === 0) {

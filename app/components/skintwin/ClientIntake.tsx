@@ -16,6 +16,7 @@ const ClientIntake = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const booking = useBooking();
+  const {clearAppointment} = booking;
   const isStandaloneIntake = searchParams.get('standalone') === '1';
   const hasConfirmableBooking = Boolean(
     !isStandaloneIntake && booking.appointment && booking.services.length > 0
@@ -36,8 +37,8 @@ const ClientIntake = () => {
     if (!isStandaloneIntake || !booking.appointment) {
       return;
     }
-    booking.clearAppointment();
-  }, [booking.appointment, booking.clearAppointment, isStandaloneIntake]);
+    clearAppointment();
+  }, [booking.appointment, clearAppointment, isStandaloneIntake]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const {name, value, type, checked} = e.target;
