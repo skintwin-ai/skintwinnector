@@ -7,10 +7,9 @@ export default function middleware(req: NextRequest, ev: unknown) {
     return NextResponse.next();
   }
 
-  return (nextAuthMiddleware as (request: NextRequest, event: unknown) => unknown)(
-    req,
-    ev
-  );
+  return (
+    nextAuthMiddleware as (request: NextRequest, event: unknown) => unknown
+  )(req, ev);
 }
 
 export const config = {
