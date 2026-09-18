@@ -23,12 +23,15 @@ const OnboardingDialog = () => {
   // Look for showNux query param in the URL.
   const searchParams = useSearchParams();
   const router = useRouter();
-  let showNux = searchParams.get('shownux') === 'true';
+  const [openNux, setOpenNux] = React.useState(false);
 
-  // Check browser width, and don't show NUX if on mobile device.
-  window.innerWidth < 640 ? (showNux = false) : '';
-
-  const [openNux, setOpenNux] = React.useState(showNux);
+  React.useEffect(() => {
+    let showNux = searchParams.get('shownux') === 'true';
+    if (typeof window !== 'undefined' && window.innerWidth < 640) {
+      showNux = false;
+    }
+    setOpenNux(showNux);
+  }, [searchParams]);
   const [currentStep, setCurrentStep] = React.useState(0);
 
   const onboardingSteps = [

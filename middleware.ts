@@ -1,23 +1,32 @@
-export {default} from 'next-auth/middleware';
+import {NextRequest, NextResponse} from 'next/server';
+import nextAuthMiddleware from 'next-auth/middleware';
+import {isUiPreview} from '@/lib/uiPreview';
+
+export default function middleware(req: NextRequest, ev: unknown) {
+  if (isUiPreview) {
+    return NextResponse.next();
+  }
+
+  return (nextAuthMiddleware as (request: NextRequest, event: unknown) => unknown)(
+    req,
+    ev
+  );
+}
 
 export const config = {
-  // specify the route you want to protect
-  matcher:
-    process.env.NEXT_PUBLIC_UI_PREVIEW === '1'
-      ? []
-      : [
-          '/home',
-          '/services',
-          '/bookings',
-          '/bookings/:path*',
-          '/clients',
-          '/payments',
-          '/payouts',
-          '/reports',
-          '/finances',
-          '/finances/cards',
-          '/finances/financing',
-          '/settings',
-          '/settings/:path*',
-        ],
+  matcher: [
+    '/home',
+    '/services',
+    '/bookings',
+    '/bookings/:path*',
+    '/clients',
+    '/payments',
+    '/payouts',
+    '/reports',
+    '/finances',
+    '/finances/cards',
+    '/finances/financing',
+    '/settings',
+    '/settings/:path*',
+  ],
 };

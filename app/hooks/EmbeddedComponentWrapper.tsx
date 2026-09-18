@@ -3,6 +3,7 @@
 import {ConnectComponentsProvider} from '@stripe/react-connect-js';
 import {EmbeddedComponentProvider} from '@/app/hooks/EmbeddedComponentProvider';
 import {useConnect} from '@/app/hooks/useConnect';
+import {isUiPreview} from '@/lib/uiPreview';
 
 export const EmbeddedComponentWrapper = ({
   children,
@@ -11,6 +12,9 @@ export const EmbeddedComponentWrapper = ({
 }) => {
   const {hasError, stripeConnectInstance} = useConnect();
   if (hasError || !stripeConnectInstance) {
+    if (isUiPreview) {
+      return <>{children}</>;
+    }
     return null;
   }
 

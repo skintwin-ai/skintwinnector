@@ -1,6 +1,27 @@
+'use client';
+
+import React from 'react';
 import {useEmbeddedComponentBorder} from '@/app/hooks/EmbeddedComponentBorderProvider';
 import {ChevronRight} from 'lucide-react';
 import {arePreviewComponentsEnabled} from '../(dashboard)/utils/arePreviewComponentsEnabled';
+
+class ConnectWidgetBoundary extends React.Component<
+  {children: React.ReactNode; fallback: React.ReactNode},
+  {hasError: boolean}
+> {
+  state = {hasError: false};
+
+  static getDerivedStateFromError() {
+    return {hasError: true};
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback;
+    }
+    return this.props.children;
+  }
+}
 
 const EmbeddedComponentContainer = ({
   children,
@@ -113,7 +134,15 @@ const EmbeddedComponentContainer = ({
       className={`${enableBorder ? 'm-[-4px] rounded-lg border-2 border-dashed border-component p-[8px]' : 'p-[6px]'} group relative transition-border duration-200 ${className}`}
     >
       <ComponentDetails />
-      {children}
+      <ConnectWidgetBoundary
+        fallback={
+          <p className="py-6 text-sm text-subdued">
+            {componentName} is unavailable until Stripe Connect is configured.
+          </p>
+        }
+      >
+        {children}
+      </ConnectWidgetBoundary>
     </div>
   );
 };
