@@ -112,7 +112,29 @@ export function buildCheckoutLineItems(
   let displayTotal = 0;
   let chargeTotal = 0;
 
+  const addLine = (item: CheckoutCatalogService, quantity: number) => {
+    lineItems.push({
+      price_data: {
+        currency: chargeCurrency,
+        unit_amount: item.usdChargeCents,
+        product_data: {name: item.name},
+      },
+      quantity,
+    });
+    displayTotal += item.price * quantity;
+    chargeTotal += item.usdChargeCents * quantity;
+  };
+
   for (const selection of selections) {
+    if (
+      typeof selection?.serviceId !== 'string' ||
+      !selection.serviceId ||
+      !Number.isInteger(selection.quantity) ||
+      !Array.isArray(selection.addOns) ||
+      selection.addOns.some((addOnId) => typeof addOnId !== 'string')
+    ) {
+      throw new BookingCheckoutValidationError('Invalid service selection');
+    }
     if (selection.quantity < 1 || selection.quantity > 10) {
       throw new BookingCheckoutValidationError(
         'Quantity must be between 1 and 10'
@@ -126,16 +148,7 @@ export function buildCheckoutLineItems(
       );
     }
 
-    lineItems.push({
-      price_data: {
-        currency: chargeCurrency,
-        unit_amount: service.usdChargeCents,
-        product_data: {name: service.name},
-      },
-      quantity: selection.quantity,
-    });
-    displayTotal += service.price * selection.quantity;
-    chargeTotal += service.usdChargeCents * selection.quantity;
+    addLine(service, selection.quantity);
 
     for (const addOnId of selection.addOns) {
       if (!service.addOns.includes(addOnId)) {
@@ -147,16 +160,7 @@ export function buildCheckoutLineItems(
       if (!addOn) {
         throw new BookingCheckoutValidationError(`Unknown add-on: ${addOnId}`);
       }
-      lineItems.push({
-        price_data: {
-          currency: chargeCurrency,
-          unit_amount: addOn.usdChargeCents,
-          product_data: {name: addOn.name},
-        },
-        quantity: 1,
-      });
-      displayTotal += addOn.price;
-      chargeTotal += addOn.usdChargeCents;
+      addLine(addOn, 1);
     }
   }
 

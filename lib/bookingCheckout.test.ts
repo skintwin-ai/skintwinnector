@@ -1,6 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import {
   BookingCheckoutValidationError,
+  bookingIdempotencyKey,
   buildCheckoutLineItems,
   type CheckoutCatalogService,
 } from './bookingCheckout';
@@ -28,6 +29,18 @@ const catalog: CheckoutCatalogService[] = [
     addOns: [],
   },
 ];
+
+describe('bookingIdempotencyKey', () => {
+  it('uses the draft id on first create and suffixes retries from attempt 2', () => {
+    expect(bookingIdempotencyKey('draft-1')).toBe('booking-checkout:draft-1');
+    expect(bookingIdempotencyKey('draft-1', 1)).toBe(
+      'booking-checkout:draft-1'
+    );
+    expect(bookingIdempotencyKey('draft-1', 2)).toBe(
+      'booking-checkout:draft-1:2'
+    );
+  });
+});
 
 describe('buildCheckoutLineItems', () => {
   it('builds matching line items and totals for two services plus one legal add-on', () => {

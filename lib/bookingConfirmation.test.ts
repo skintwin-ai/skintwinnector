@@ -15,6 +15,38 @@ const catalog = [
 ] as Service[];
 
 describe('bookingConfirmation helpers', () => {
+  it('maps unresolved retrieve to pending and missing ids to empty or not-found', () => {
+    expect(
+      resolveConfirmationPhase({
+        resolved: false,
+        sessionId: 'cs_test_1',
+        retrieved: null,
+      })
+    ).toBe('pending');
+    expect(
+      resolveConfirmationPhase({
+        resolved: true,
+        sessionId: null,
+        retrieved: null,
+      })
+    ).toBe('empty');
+    expect(
+      resolveConfirmationPhase({
+        resolved: true,
+        sessionId: 'cs_test_1',
+        retrieved: null,
+      })
+    ).toBe('not-found');
+    expect(
+      resolveConfirmationPhase({
+        resolved: true,
+        sessionId: 'cs_test_1',
+        retrieved: null,
+        retrieveFailed: true,
+      })
+    ).toBe('retrieve-error');
+  });
+
   it('maps retrieve paid to a confirmed UI model with a Stripe reference', () => {
     const retrieved: RetrievedCheckout = {
       sessionId: 'cs_test_paid',
@@ -30,9 +62,7 @@ describe('bookingConfirmation helpers', () => {
       resolveConfirmationPhase({
         resolved: true,
         sessionId: retrieved.sessionId,
-        retrieveOk: true,
-        paymentStatus: retrieved.paymentStatus,
-        hasDraft: true,
+        retrieved,
       })
     ).toBe('paid');
   });
@@ -42,9 +72,14 @@ describe('bookingConfirmation helpers', () => {
       resolveConfirmationPhase({
         resolved: true,
         sessionId: 'cs_test_unpaid',
-        retrieveOk: true,
-        paymentStatus: 'unpaid',
-        hasDraft: true,
+        retrieved: {
+          sessionId: 'cs_test_unpaid',
+          paymentStatus: 'unpaid',
+          amountTotal: 8500,
+          currency: 'usd',
+          paymentIntentId: null,
+          metadata: {},
+        },
       })
     ).toBe('unpaid');
     expect(isPaidPaymentStatus('unpaid')).toBe(false);
@@ -65,9 +100,14 @@ describe('bookingConfirmation helpers', () => {
       resolveConfirmationPhase({
         resolved: true,
         sessionId: 'cs_test_paid',
-        retrieveOk: true,
-        paymentStatus: 'paid',
-        hasDraft: false,
+        retrieved: {
+          sessionId: 'cs_test_paid',
+          paymentStatus: 'paid',
+          amountTotal: 8500,
+          currency: 'usd',
+          paymentIntentId: 'pi_test_1',
+          metadata: {},
+        },
       })
     ).toBe('paid');
   });

@@ -4,7 +4,8 @@ import type {
   ServiceSelection,
 } from '@/app/contexts/booking/types';
 
-export const BOOKING_DRAFT_KEY_PREFIX = 'skintwin.bookingDraft.';
+const BOOKING_DRAFT_KEY_PREFIX = 'skintwin.bookingDraft.';
+const ACTIVE_DRAFT_ID_KEY = 'skintwin.bookingDraftId';
 
 export type BookingDraft = {
   draftId: string;
@@ -26,7 +27,7 @@ function storage(): Storage | null {
   }
 }
 
-export function bookingDraftKey(sessionId: string): string {
+function bookingDraftKey(sessionId: string): string {
   return `${BOOKING_DRAFT_KEY_PREFIX}${sessionId}`;
 }
 
@@ -55,6 +56,21 @@ export function loadBookingDraft(sessionId: string): BookingDraft | null {
   } catch {
     return null;
   }
+}
+
+export function getOrCreateDraftId(): string {
+  const store = storage();
+  const existing = store?.getItem(ACTIVE_DRAFT_ID_KEY);
+  if (existing) {
+    return existing;
+  }
+  const draftId = crypto.randomUUID();
+  store?.setItem(ACTIVE_DRAFT_ID_KEY, draftId);
+  return draftId;
+}
+
+export function clearActiveDraftId(): void {
+  storage()?.removeItem(ACTIVE_DRAFT_ID_KEY);
 }
 
 export function deleteBookingDraft(sessionId: string): void {

@@ -1,6 +1,5 @@
 import {getServerSession} from 'next-auth';
-import {NextRequest} from 'next/server';
-import type {Service} from '@/app/contexts/booking/types';
+import {NextRequest, NextResponse} from 'next/server';
 import servicesData from '@/app/data/services.json';
 import {
   BookingCheckoutValidationError,
@@ -8,17 +7,16 @@ import {
   bookingIdempotencyKey,
   buildCheckoutLineItems,
   encodeSelectionMetadata,
+  isCheckoutSessionId,
+  type CheckoutCatalogService,
 } from '@/lib/bookingCheckout';
 import {authOptions} from '@/lib/auth';
 import {stripe} from '@/lib/stripe';
 
-const catalog = servicesData as Service[];
+const catalog = servicesData as CheckoutCatalogService[];
 
 function jsonError(error: string, status: number) {
-  return new Response(JSON.stringify({error}), {
-    status,
-    headers: {'Content-Type': 'application/json'},
-  });
+  return NextResponse.json({error}, {status});
 }
 
 export async function POST(req: NextRequest) {
@@ -26,6 +24,11 @@ export async function POST(req: NextRequest) {
     const session = await getServerSession(authOptions);
     if (!session?.user?.stripeAccountId) {
       return jsonError('Unauthorized or no Stripe account found', 401);
+    }
+
+    const origin = process.env.NEXTAUTH_URL;
+    if (!origin) {
+      return jsonError('NEXTAUTH_URL is not configured', 500);
     }
 
     const body = await req.json();
@@ -56,9 +59,13 @@ export async function POST(req: NextRequest) {
       throw error;
     }
 
-    const stripeAccount = await stripe.accounts.retrieve(
-      session.user.stripeAccountId
-    );
+    const [stripeAccount, taxSettings] = await Promise.all([
+      stripe.accounts.retrieve(session.user.stripeAccountId),
+      stripe.tax.settings.retrieve(
+        {},
+        {stripeAccount: session.user.stripeAccountId}
+      ),
+    ]);
     if (stripeAccount.default_currency !== 'usd') {
       return jsonError(
         'This increment only charges connected accounts whose default currency is USD',
@@ -66,20 +73,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    let automaticTaxEnabled = false;
-    let taxCode: string | undefined;
-    let taxBehavior: 'exclusive' | undefined;
-    try {
-      const taxSettings = await stripe.tax.settings.retrieve(
-        {},
-        {stripeAccount: session.user.stripeAccountId}
-      );
-      automaticTaxEnabled = taxSettings.status === 'active';
-      taxCode = taxSettings.defaults.tax_code || 'txcd_99999999';
-      taxBehavior = automaticTaxEnabled ? 'exclusive' : undefined;
-    } catch {
-      automaticTaxEnabled = false;
-    }
+    const automaticTaxEnabled = taxSettings?.status === 'active';
+    const taxCode = taxSettings?.defaults.tax_code || 'txcd_99999999';
+    const taxBehavior = automaticTaxEnabled ? 'exclusive' : undefined;
 
     const lineItems = built.lineItems.map((item) => ({
       ...item,
@@ -93,12 +89,21 @@ export async function POST(req: NextRequest) {
       },
     }));
 
-    const origin = process.env.NEXTAUTH_URL;
-    if (!origin) {
-      return jsonError('NEXTAUTH_URL is not configured', 500);
-    }
     const returnUrl = `${origin}/bookings/confirmation?session_id={CHECKOUT_SESSION_ID}`;
     const idempotencyKey = bookingIdempotencyKey(draftId, body.retryAttempt);
+    const previousSessionId =
+      typeof body.replaceSessionId === 'string' ? body.replaceSessionId : '';
+    if (isCheckoutSessionId(previousSessionId)) {
+      try {
+        await stripe.checkout.sessions.expire(
+          previousSessionId,
+          {},
+          {stripeAccount: session.user.stripeAccountId}
+        );
+      } catch {
+        // Previous session may already be expired or complete.
+      }
+    }
 
     const checkoutSession = await stripe.checkout.sessions.create(
       {
@@ -129,13 +134,10 @@ export async function POST(req: NextRequest) {
       draftId,
     });
 
-    return new Response(
-      JSON.stringify({
-        checkoutUrl: checkoutSession.url,
-        sessionId: checkoutSession.id,
-      }),
-      {status: 200, headers: {'Content-Type': 'application/json'}}
-    );
+    return NextResponse.json({
+      checkoutUrl: checkoutSession.url,
+      sessionId: checkoutSession.id,
+    });
   } catch (error: any) {
     console.error(
       'An error occurred when creating a booking checkout session',

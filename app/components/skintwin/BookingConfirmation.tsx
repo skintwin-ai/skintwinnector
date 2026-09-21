@@ -10,7 +10,9 @@ import type {Provider, Service} from '@/app/contexts/booking/types';
 import servicesData from '@/app/data/services.json';
 import providersData from '@/app/data/providers.json';
 import {
+  attachCatalogServices,
   formatStripeMoney,
+  isPaidPaymentStatus,
   paymentReference,
   resolveConfirmationPhase,
   servicesFromMetadata,
@@ -19,13 +21,25 @@ import {
 import {
   deleteBookingDraft,
   loadBookingDraft,
-  persistBookingDraft,
   type BookingDraft,
 } from '@/lib/bookingDraft';
+import {startBookingCheckout} from '@/lib/startBookingCheckout';
 import {formatCurrency, formatDuration} from '@/lib/salon';
 
 const services = servicesData as Service[];
 const providers = providersData as Provider[];
+
+export function PaymentChecking() {
+  return (
+    <Container
+      className="panel-accent-top space-y-3 border-[color:var(--hairline)]"
+      aria-live="polite"
+    >
+      <h2 className="text-xl font-semibold">Checking payment</h2>
+      <p className="text-subdued">Retrieving the Stripe Checkout session.</p>
+    </Container>
+  );
+}
 
 const BookingConfirmation = () => {
   const booking = useBooking();
@@ -33,65 +47,65 @@ const BookingConfirmation = () => {
   const searchParams = useSearchParams();
   const sessionId = searchParams.get('session_id');
   const [resolved, setResolved] = useState(false);
-  const [retrieveOk, setRetrieveOk] = useState<boolean | null>(null);
   const [retrieved, setRetrieved] = useState<RetrievedCheckout | null>(null);
+  const [retrieveFailed, setRetrieveFailed] = useState(false);
   const [draft, setDraft] = useState<BookingDraft | null>(null);
-  const [retrying, setRetrying] = useState(false);
+  const isCreatingCheckout = booking.checkout.status === 'creating';
 
   useEffect(() => {
-    let cancelled = false;
+    const controller = new AbortController();
 
     async function load() {
       if (!sessionId) {
-        if (!cancelled) {
+        setResolved(true);
+        return;
+      }
+
+      try {
+        const response = await fetch(
+          `/api/bookings/checkout_session?session_id=${encodeURIComponent(sessionId)}`,
+          {signal: controller.signal}
+        );
+        if (response.status === 401 || response.status === 404) {
+          deleteBookingDraft(sessionId);
           setResolved(true);
+          return;
         }
-        return;
-      }
+        if (!response.ok) {
+          setDraft(loadBookingDraft(sessionId));
+          setRetrieveFailed(true);
+          setResolved(true);
+          return;
+        }
 
-      const response = await fetch(
-        `/api/bookings/checkout_session?session_id=${encodeURIComponent(sessionId)}`
-      );
-      if (cancelled) {
-        return;
-      }
-
-      if (response.status === 401 || response.status === 404) {
-        deleteBookingDraft(sessionId);
-        setRetrieveOk(false);
+        const payload = (await response.json()) as RetrievedCheckout;
+        const stored = loadBookingDraft(sessionId);
+        if (stored) {
+          booking.restoreBookingSnapshot({
+            services: stored.services,
+            appointment: stored.appointment,
+            client: stored.client,
+          });
+          setDraft(stored);
+        }
+        if (isPaidPaymentStatus(payload.paymentStatus)) {
+          booking.setCheckoutStatus('paid');
+        }
+        setRetrieved(payload);
         setResolved(true);
-        return;
-      }
-
-      if (!response.ok) {
-        setRetrieveOk(false);
+      } catch (error: any) {
+        if (error?.name === 'AbortError') {
+          return;
+        }
+        setDraft(loadBookingDraft(sessionId));
+        setRetrieveFailed(true);
         setResolved(true);
-        return;
       }
-
-      const payload = (await response.json()) as RetrievedCheckout;
-      const stored = loadBookingDraft(sessionId);
-      if (stored) {
-        booking.restoreBookingSnapshot({
-          services: stored.services,
-          appointment: stored.appointment,
-          client: stored.client,
-          checkoutSessionId: stored.sessionId,
-        });
-        setDraft(stored);
-      }
-      if (payload.paymentStatus === 'paid') {
-        booking.setCheckoutStatus('paid');
-      }
-      booking.setCheckoutSessionId(payload.sessionId);
-      setRetrieved(payload);
-      setRetrieveOk(true);
-      setResolved(true);
     }
 
     void load();
     return () => {
-      cancelled = true;
+      controller.abort();
     };
     // Hydrate once per session id; booking methods are stable enough for this load.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -100,58 +114,38 @@ const BookingConfirmation = () => {
   const phase = resolveConfirmationPhase({
     resolved,
     sessionId,
-    retrieveOk,
-    paymentStatus: retrieved?.paymentStatus || null,
-    hasDraft: Boolean(draft),
+    retrieved,
+    retrieveFailed,
   });
 
   const appointment = draft?.appointment || null;
   const client = draft?.client || null;
-  const bookedServices = (draft?.services || []).map((selection) => ({
-    ...selection,
-    service: services.find((item) => item.id === selection.serviceId),
-  }));
-  const metadataServices = retrieved
-    ? servicesFromMetadata(retrieved.metadata, services)
-    : [];
-  const visibleServices = draft ? bookedServices : metadataServices;
+  const visibleServices = draft
+    ? attachCatalogServices(draft.services, services)
+    : retrieved
+      ? servicesFromMetadata(retrieved.metadata, services)
+      : [];
   const provider = providers.find(
     (item) => item.id === appointment?.providerId
   );
 
   const handleRetry = async () => {
-    if (!draft || retrying) {
+    if (!draft || isCreatingCheckout) {
       return;
     }
-    setRetrying(true);
     booking.setCheckoutStatus('creating');
-    const nextAttempt = (draft.retryAttempt || 1) + 1;
     try {
-      const response = await fetch('/api/bookings/create_checkout_session', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({
-          draftId: draft.draftId,
-          retryAttempt: nextAttempt,
-          services: draft.services,
-          appointment: draft.appointment,
-          client: draft.client,
-        }),
+      const checkout = await startBookingCheckout({
+        draftId: draft.draftId,
+        retryAttempt: (draft.retryAttempt || 1) + 1,
+        services: draft.services,
+        appointment: draft.appointment,
+        client: draft.client,
+        replaceSessionId: draft.sessionId,
       });
-      const payload = await response.json();
-      if (!response.ok || !payload.checkoutUrl || !payload.sessionId) {
-        throw new Error(payload.error || 'Unable to retry payment');
-      }
-      persistBookingDraft(payload.sessionId, {
-        ...draft,
-        sessionId: payload.sessionId,
-        retryAttempt: nextAttempt,
-      });
-      booking.setCheckoutSessionId(payload.sessionId);
       booking.setCheckoutStatus('pending');
-      window.location.assign(payload.checkoutUrl);
+      window.location.assign(checkout.checkoutUrl);
     } catch (error: any) {
-      setRetrying(false);
       booking.setCheckoutError(error.message || 'Unable to retry payment');
     }
   };
@@ -162,20 +156,53 @@ const BookingConfirmation = () => {
         services: draft.services,
         appointment: draft.appointment,
         client: draft.client,
-        checkoutSessionId: draft.sessionId,
       });
     }
     router.push('/bookings/intake');
   };
 
   if (phase === 'pending') {
+    return <PaymentChecking />;
+  }
+
+  if (phase === 'retrieve-error') {
     return (
       <Container
         className="panel-accent-top space-y-3 border-[color:var(--hairline)]"
-        aria-live="polite"
+        data-testid="retrieve-error"
       >
-        <h2 className="text-xl font-semibold">Checking payment</h2>
-        <p className="text-subdued">Retrieving the Stripe Checkout session.</p>
+        <h2 className="text-xl font-semibold">Unable to retrieve payment</h2>
+        <p className="text-subdued">
+          We could not load the Stripe Checkout session. Try checking again.
+        </p>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            className="btn-cobalt"
+            onClick={() => window.location.reload()}
+            data-testid="retry-retrieve"
+          >
+            Check payment again
+          </Button>
+          {draft && (
+            <>
+              <Button
+                variant="secondary"
+                onClick={handleRetry}
+                disabled={isCreatingCheckout}
+                data-testid="retry-payment"
+              >
+                Retry payment
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={handleEdit}
+                data-testid="edit-booking"
+              >
+                Edit booking
+              </Button>
+            </>
+          )}
+        </div>
       </Container>
     );
   }
@@ -336,13 +363,23 @@ const BookingConfirmation = () => {
         )}
         {!paid && (
           <>
+            {booking.checkout.status === 'failed' && booking.checkout.error && (
+              <p
+                className="w-full text-sm text-red-400"
+                role="alert"
+                aria-live="assertive"
+                data-testid="error-checkout"
+              >
+                {booking.checkout.error}
+              </p>
+            )}
             <Button
               className="btn-cobalt"
               onClick={handleRetry}
-              disabled={retrying || !draft}
+              disabled={isCreatingCheckout || !draft}
               data-testid="retry-payment"
             >
-              {retrying ? 'Redirecting to payment' : 'Retry payment'}
+              {isCreatingCheckout ? 'Redirecting to payment' : 'Retry payment'}
             </Button>
             <Button
               variant="secondary"

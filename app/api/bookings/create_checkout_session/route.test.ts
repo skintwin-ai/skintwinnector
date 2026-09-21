@@ -19,7 +19,10 @@ vi.mock('@/lib/stripe', () => ({
     accounts: {retrieve: (...args: unknown[]) => accountsRetrieve(...args)},
     tax: {settings: {retrieve: (...args: unknown[]) => taxRetrieve(...args)}},
     checkout: {
-      sessions: {create: (...args: unknown[]) => sessionsCreate(...args)},
+      sessions: {
+        create: (...args: unknown[]) => sessionsCreate(...args),
+        expire: vi.fn().mockResolvedValue({}),
+      },
     },
   },
 }));
@@ -140,6 +143,22 @@ describe('POST /api/bookings/create_checkout_session', () => {
     const {POST} = await import('./route');
     const response = await POST(postRequest(validBody));
     expect(response.status).toBe(400);
+    expect(sessionsCreate).not.toHaveBeenCalled();
+  });
+
+  it('uses a suffixed Idempotency-Key on retryAttempt 2', async () => {
+    const {POST} = await import('./route');
+    await POST(postRequest({...validBody, retryAttempt: 2}));
+    expect(sessionsCreate.mock.calls[0][1].idempotencyKey).toBe(
+      'booking-checkout:draft-1:2'
+    );
+  });
+
+  it('fails closed when tax settings cannot be retrieved', async () => {
+    taxRetrieve.mockRejectedValue(new Error('tax unavailable'));
+    const {POST} = await import('./route');
+    const response = await POST(postRequest(validBody));
+    expect(response.status).toBe(500);
     expect(sessionsCreate).not.toHaveBeenCalled();
   });
 

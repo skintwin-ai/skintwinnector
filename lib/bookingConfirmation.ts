@@ -15,6 +15,7 @@ export type ConfirmationPhase =
   | 'pending'
   | 'empty'
   | 'not-found'
+  | 'retrieve-error'
   | 'paid'
   | 'unpaid';
 
@@ -25,37 +26,44 @@ export function isPaidPaymentStatus(status: string | null | undefined) {
 export function resolveConfirmationPhase(input: {
   resolved: boolean;
   sessionId: string | null;
-  retrieveOk: boolean | null;
-  paymentStatus: string | null;
-  hasDraft: boolean;
+  retrieved: RetrievedCheckout | null;
+  retrieveFailed?: boolean;
 }): ConfirmationPhase {
   if (!input.resolved) {
     return 'pending';
   }
-  if (input.sessionId && input.retrieveOk === false) {
-    return 'not-found';
-  }
-  if (input.retrieveOk && isPaidPaymentStatus(input.paymentStatus)) {
-    return 'paid';
-  }
-  if (input.retrieveOk) {
-    return 'unpaid';
-  }
-  if (!input.sessionId && !input.hasDraft) {
+  if (!input.sessionId) {
     return 'empty';
   }
-  return 'empty';
+  if (input.retrieved) {
+    return isPaidPaymentStatus(input.retrieved.paymentStatus)
+      ? 'paid'
+      : 'unpaid';
+  }
+  if (input.retrieveFailed) {
+    return 'retrieve-error';
+  }
+  return 'not-found';
+}
+
+export function attachCatalogServices(
+  selections: ServiceSelection[],
+  catalog: Service[]
+): Array<ServiceSelection & {service?: Service}> {
+  return selections.map((selection) => ({
+    ...selection,
+    service: serviceById(catalog, selection.serviceId),
+  }));
 }
 
 export function servicesFromMetadata(
   metadata: Record<string, string> | undefined,
   catalog: Service[]
 ): Array<ServiceSelection & {service?: Service}> {
-  const selections = decodeSelectionMetadata(metadata?.selections || '');
-  return selections.map((selection) => ({
-    ...selection,
-    service: serviceById(catalog, selection.serviceId),
-  }));
+  return attachCatalogServices(
+    decodeSelectionMetadata(metadata?.selections || ''),
+    catalog
+  );
 }
 
 export function formatStripeMoney(

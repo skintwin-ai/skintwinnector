@@ -38,7 +38,12 @@ describe('POST /api/webhooks', () => {
     constructEvent.mockReturnValue({
       type: 'checkout.session.completed',
       account: 'acct_123',
-      data: {object: {id: 'cs_test_1', metadata: {draftId: 'draft-1'}}},
+      data: {
+        object: {
+          id: 'cs_test_1',
+          metadata: {draftId: 'draft-1', operatorAccountId: 'acct_123'},
+        },
+      },
     });
     const {POST} = await import('./route');
     const response = await POST(postRequest('sig_valid'));
@@ -54,7 +59,12 @@ describe('POST /api/webhooks', () => {
   it('ignores a platform event without event.account', async () => {
     constructEvent.mockReturnValue({
       type: 'checkout.session.completed',
-      data: {object: {id: 'cs_test_1', metadata: {draftId: 'draft-1'}}},
+      data: {
+        object: {
+          id: 'cs_test_1',
+          metadata: {draftId: 'draft-1', operatorAccountId: 'acct_123'},
+        },
+      },
     });
     const {POST} = await import('./route');
     await POST(postRequest('sig_valid'));
@@ -74,7 +84,7 @@ describe('POST /api/webhooks', () => {
     });
     const {POST} = await import('./route');
     await POST(postRequest('sig_valid'));
-    expect(sessionsRetrieve).toHaveBeenCalled();
+    expect(sessionsRetrieve).not.toHaveBeenCalled();
   });
 
   it('does not treat an unpaid retrieve as paid', async () => {
@@ -82,7 +92,12 @@ describe('POST /api/webhooks', () => {
     constructEvent.mockReturnValue({
       type: 'checkout.session.completed',
       account: 'acct_123',
-      data: {object: {id: 'cs_test_1', metadata: {draftId: 'draft-1'}}},
+      data: {
+        object: {
+          id: 'cs_test_1',
+          metadata: {draftId: 'draft-1', operatorAccountId: 'acct_123'},
+        },
+      },
     });
     sessionsRetrieve.mockResolvedValue({
       id: 'cs_test_1',
@@ -99,6 +114,47 @@ describe('POST /api/webhooks', () => {
       log.mock.calls.some((call) => call[1]?.paymentStatus === 'paid')
     ).toBe(false);
     log.mockRestore();
+  });
+
+  it('verifies with the Connect secret when the platform secret is unset', async () => {
+    delete process.env.STRIPE_WEBHOOK_SECRET;
+    process.env.STRIPE_CONNECT_WEBHOOK_SECRET = 'whsec_connect';
+    constructEvent.mockReturnValue({
+      type: 'checkout.session.completed',
+      account: 'acct_123',
+      data: {
+        object: {
+          id: 'cs_test_1',
+          metadata: {draftId: 'draft-1', operatorAccountId: 'acct_123'},
+        },
+      },
+    });
+    const {POST} = await import('./route');
+    const response = await POST(postRequest('sig_valid'));
+    expect(response.status).toBe(200);
+    expect(constructEvent).toHaveBeenCalledWith(
+      '{"id":"evt_1"}',
+      'sig_valid',
+      'whsec_connect'
+    );
+  });
+
+  it('still acknowledges when retrieve throws after a valid signature', async () => {
+    constructEvent.mockReturnValue({
+      type: 'checkout.session.completed',
+      account: 'acct_123',
+      data: {
+        object: {
+          id: 'cs_test_1',
+          metadata: {draftId: 'draft-1', operatorAccountId: 'acct_123'},
+        },
+      },
+    });
+    sessionsRetrieve.mockRejectedValue(new Error('stripe down'));
+    const {POST} = await import('./route');
+    const response = await POST(postRequest('sig_valid'));
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({});
   });
 
   it('returns 400 when the signature is missing', async () => {

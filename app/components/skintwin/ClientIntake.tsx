@@ -7,7 +7,8 @@ import {Input} from '@/components/ui/input';
 import {Label} from '@/components/ui/label';
 import Container from '@/app/components/Container';
 import {useBooking} from '@/app/contexts/booking/BookingContext';
-import {persistBookingDraft} from '@/lib/bookingDraft';
+import {startBookingCheckout} from '@/lib/startBookingCheckout';
+import {getOrCreateDraftId} from '@/lib/bookingDraft';
 
 const validateEmail = (email: string) =>
   /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -123,33 +124,15 @@ const ClientIntake = () => {
       }
       checkoutInFlight.current = true;
       booking.setCheckoutStatus('creating');
-      const draftId = crypto.randomUUID();
       try {
-        const response = await fetch('/api/bookings/create_checkout_session', {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({
-            draftId,
-            services: booking.services,
-            appointment: booking.appointment,
-            client,
-          }),
-        });
-        const payload = await response.json();
-        if (!response.ok || !payload.checkoutUrl || !payload.sessionId) {
-          throw new Error(payload.error || 'Unable to start checkout');
-        }
-        persistBookingDraft(payload.sessionId, {
-          draftId,
-          sessionId: payload.sessionId,
-          retryAttempt: 1,
+        const checkout = await startBookingCheckout({
+          draftId: getOrCreateDraftId(),
           services: booking.services,
           appointment: booking.appointment!,
           client,
         });
-        booking.setCheckoutSessionId(payload.sessionId);
         booking.setCheckoutStatus('pending');
-        window.location.assign(payload.checkoutUrl);
+        window.location.assign(checkout.checkoutUrl);
       } catch (error: any) {
         checkoutInFlight.current = false;
         booking.setCheckoutError(error.message || 'Unable to start checkout');
@@ -161,6 +144,13 @@ const ClientIntake = () => {
     }
     router.push('/clients');
   };
+
+  let submitLabel = 'Save intake';
+  if (isCreatingCheckout) {
+    submitLabel = 'Redirecting to payment';
+  } else if (hasConfirmableBooking) {
+    submitLabel = 'Continue to payment';
+  }
 
   return (
     <div className="space-y-4">
@@ -328,11 +318,7 @@ const ClientIntake = () => {
               disabled={isCreatingCheckout}
               aria-busy={isCreatingCheckout}
             >
-              {isCreatingCheckout
-                ? 'Redirecting to payment'
-                : hasConfirmableBooking
-                  ? 'Continue to payment'
-                  : 'Save intake'}
+              {submitLabel}
             </Button>
           </div>
         </form>

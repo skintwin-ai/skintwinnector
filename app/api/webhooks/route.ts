@@ -32,7 +32,12 @@ async function logBookingCheckoutEvent(event: {
     return;
   }
   const sessionId = event.data.object.id;
-  if (!sessionId) {
+  const eventMetadata = event.data.object.metadata;
+  if (
+    !sessionId ||
+    !eventMetadata?.draftId ||
+    eventMetadata.operatorAccountId !== event.account
+  ) {
     return;
   }
 
@@ -62,8 +67,11 @@ export async function POST(req: NextRequest) {
     return jsonError('Cannot find the webhook signature', 400);
   }
 
-  const secret = process.env.STRIPE_WEBHOOK_SECRET;
-  if (!secret) {
+  const secrets = [
+    process.env.STRIPE_WEBHOOK_SECRET,
+    process.env.STRIPE_CONNECT_WEBHOOK_SECRET,
+  ].filter(Boolean);
+  if (secrets.length === 0) {
     return jsonError('Cannot find the webhook secret', 400);
   }
 
@@ -79,7 +87,11 @@ export async function POST(req: NextRequest) {
       break;
     case 'checkout.session.completed':
     case 'checkout.session.async_payment_succeeded':
-      await logBookingCheckoutEvent(event);
+      try {
+        await logBookingCheckoutEvent(event);
+      } catch (error) {
+        console.error('Booking checkout webhook retrieve failed', error);
+      }
       break;
     default:
       console.log('Unhandled event type', event.type);
