@@ -1,12 +1,13 @@
 'use client';
 
-import {useEffect, useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 import {useRouter, useSearchParams} from 'next/navigation';
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
 import {Label} from '@/components/ui/label';
 import Container from '@/app/components/Container';
 import {useBooking} from '@/app/contexts/booking/BookingContext';
+import {persistBookingDraft} from '@/lib/bookingDraft';
 
 const validateEmail = (email: string) =>
   /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -32,6 +33,8 @@ const ClientIntake = () => {
   const [isLookingUp, setIsLookingUp] = useState(false);
   const [lookupEmail, setLookupEmail] = useState('');
   const [clientFound, setClientFound] = useState(false);
+  const checkoutInFlight = useRef(false);
+  const isCreatingCheckout = booking.checkout.status === 'creating';
 
   useEffect(() => {
     if (!isStandaloneIntake || !booking.appointment) {
@@ -101,23 +104,56 @@ const ClientIntake = () => {
     return Object.keys(nextErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
 
-    booking.setClient({
+    const client = {
       firstName: formData.firstName,
       lastName: formData.lastName,
       email: formData.email,
       phone: formData.phone,
       consentAccepted: formData.consentAccepted,
       intakeCompleted: true,
-    });
+    };
+    booking.setClient(client);
     if (hasConfirmableBooking) {
-      if (!booking.checkout.invoiceId) {
-        booking.setInvoiceDetails(`APT-${Date.now().toString().slice(-8)}`, '');
+      if (checkoutInFlight.current || isCreatingCheckout) {
+        return;
       }
-      router.push('/bookings/confirmation');
+      checkoutInFlight.current = true;
+      booking.setCheckoutStatus('creating');
+      const draftId = crypto.randomUUID();
+      try {
+        const response = await fetch('/api/bookings/create_checkout_session', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            draftId,
+            services: booking.services,
+            appointment: booking.appointment,
+            client,
+          }),
+        });
+        const payload = await response.json();
+        if (!response.ok || !payload.checkoutUrl || !payload.sessionId) {
+          throw new Error(payload.error || 'Unable to start checkout');
+        }
+        persistBookingDraft(payload.sessionId, {
+          draftId,
+          sessionId: payload.sessionId,
+          retryAttempt: 1,
+          services: booking.services,
+          appointment: booking.appointment!,
+          client,
+        });
+        booking.setCheckoutSessionId(payload.sessionId);
+        booking.setCheckoutStatus('pending');
+        window.location.assign(payload.checkoutUrl);
+      } catch (error: any) {
+        checkoutInFlight.current = false;
+        booking.setCheckoutError(error.message || 'Unable to start checkout');
+      }
       return;
     }
     if (booking.appointment) {
@@ -263,6 +299,16 @@ const ClientIntake = () => {
               {errors.consent}
             </p>
           )}
+          {booking.checkout.status === 'failed' && booking.checkout.error && (
+            <p
+              className="text-sm text-red-400"
+              role="alert"
+              aria-live="assertive"
+              data-testid="error-checkout"
+            >
+              {booking.checkout.error}
+            </p>
+          )}
 
           <div className="flex flex-wrap gap-2">
             <Button
@@ -279,8 +325,14 @@ const ClientIntake = () => {
               type="submit"
               className="btn-cobalt"
               data-testid="continue-to-checkout"
+              disabled={isCreatingCheckout}
+              aria-busy={isCreatingCheckout}
             >
-              {hasConfirmableBooking ? 'Confirm booking' : 'Save intake'}
+              {isCreatingCheckout
+                ? 'Redirecting to payment'
+                : hasConfirmableBooking
+                  ? 'Continue to payment'
+                  : 'Save intake'}
             </Button>
           </div>
         </form>
