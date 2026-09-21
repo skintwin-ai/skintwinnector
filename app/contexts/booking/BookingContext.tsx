@@ -18,9 +18,6 @@ import type {
 } from './types';
 
 const initialCheckout: CheckoutState = {
-  invoiceId: '',
-  offlineReference: '',
-  checkoutSessionId: '',
   status: 'idle',
 };
 
@@ -122,18 +119,12 @@ export function BookingProvider({children}: {children: React.ReactNode}) {
   }, []);
 
   const setCheckoutStatus = useCallback((status: CheckoutState['status']) => {
-    setCheckout((prev) => ({...prev, status, error: undefined}));
-  }, []);
-
-  const setInvoiceDetails = useCallback(
-    (invoiceId: string, offlineReference: string) => {
-      setCheckout((prev) => ({...prev, invoiceId, offlineReference}));
-    },
-    []
-  );
-
-  const setCheckoutSessionId = useCallback((checkoutSessionId: string) => {
-    setCheckout((prev) => ({...prev, checkoutSessionId}));
+    setCheckout((prev) => {
+      if (prev.status === status && prev.error === undefined) {
+        return prev;
+      }
+      return {...prev, status, error: undefined};
+    });
   }, []);
 
   const restoreBookingSnapshot = useCallback(
@@ -141,17 +132,10 @@ export function BookingProvider({children}: {children: React.ReactNode}) {
       services: ServiceSelection[];
       appointment: Appointment | null;
       client: Client | null;
-      checkoutSessionId?: string;
     }) => {
       setServices(snapshot.services);
       setAppointmentState(snapshot.appointment);
       setClientState(snapshot.client);
-      if (snapshot.checkoutSessionId) {
-        setCheckout((prev) => ({
-          ...prev,
-          checkoutSessionId: snapshot.checkoutSessionId || '',
-        }));
-      }
     },
     []
   );
@@ -227,8 +211,6 @@ export function BookingProvider({children}: {children: React.ReactNode}) {
       updateIntakeStatus,
       clearClient,
       setCheckoutStatus,
-      setInvoiceDetails,
-      setCheckoutSessionId,
       restoreBookingSnapshot,
       setCheckoutError,
       clearCheckout,
@@ -252,8 +234,6 @@ export function BookingProvider({children}: {children: React.ReactNode}) {
       updateIntakeStatus,
       clearClient,
       setCheckoutStatus,
-      setInvoiceDetails,
-      setCheckoutSessionId,
       restoreBookingSnapshot,
       setCheckoutError,
       clearCheckout,

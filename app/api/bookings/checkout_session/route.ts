@@ -1,14 +1,11 @@
 import {getServerSession} from 'next-auth';
-import {NextRequest} from 'next/server';
+import {NextRequest, NextResponse} from 'next/server';
 import {isCheckoutSessionId} from '@/lib/bookingCheckout';
 import {authOptions} from '@/lib/auth';
 import {stripe} from '@/lib/stripe';
 
 function jsonError(error: string, status: number) {
-  return new Response(JSON.stringify({error}), {
-    status,
-    headers: {'Content-Type': 'application/json'},
-  });
+  return NextResponse.json({error}, {status});
 }
 
 function isMissingSession(error: any) {
@@ -59,17 +56,14 @@ export async function GET(req: NextRequest) {
       draftId: checkoutSession.metadata?.draftId,
     });
 
-    return new Response(
-      JSON.stringify({
-        sessionId: checkoutSession.id,
-        paymentStatus: checkoutSession.payment_status,
-        amountTotal: checkoutSession.amount_total,
-        currency: checkoutSession.currency,
-        paymentIntentId,
-        metadata: checkoutSession.metadata || {},
-      }),
-      {status: 200, headers: {'Content-Type': 'application/json'}}
-    );
+    return NextResponse.json({
+      sessionId: checkoutSession.id,
+      paymentStatus: checkoutSession.payment_status,
+      amountTotal: checkoutSession.amount_total,
+      currency: checkoutSession.currency,
+      paymentIntentId,
+      metadata: checkoutSession.metadata || {},
+    });
   } catch (error: any) {
     console.error(
       'An error occurred when retrieving a booking checkout session',
