@@ -1,11 +1,7 @@
 'use client';
 
-import Hero from '@/public/landing-page.jpeg';
 import SkinTwinLogo from '@/public/skintwin_logo.png';
 import Image from 'next/image';
-import Testimonial from '@/public/testimonial.jpeg';
-import QuotePortrait from '@/public/testimonial-portrait.jpg';
-import Dashboard from '@/public/dashboard.png';
 import Stripe from '@/public/stripe.svg';
 import {Button} from '@/components/ui/button';
 import {
@@ -137,14 +133,9 @@ export default function LandingPage() {
           </div>
         </div>
         <div className="absolute top-0 z-[-1] h-full w-full overflow-hidden bg-gradient-to-t from-[#07112B] via-[#07112B]/75 to-[#0C1A3D]/50" />
-        <Image
-          src={Hero}
-          alt="logo"
-          placeholder="blur"
-          quality={80}
-          sizes="100vw"
-          className="absolute top-0 z-[-2] h-full w-full overflow-hidden object-cover"
-          priority
+        <div
+          aria-hidden
+          className="absolute top-0 z-[-2] h-full w-full overflow-hidden bg-[radial-gradient(circle_at_20%_20%,#1B6FE5_0%,transparent_45%),radial-gradient(circle_at_80%_0%,#0E8C8B_0%,transparent_40%),linear-gradient(180deg,#07112B_0%,#0C1A3D_100%)]"
         />
       </div>
 
@@ -198,14 +189,14 @@ export default function LandingPage() {
       <div className="relative bg-screen-foreground">
         <div className="mx-auto max-w-screen-lg px-4">
           <div className="flex flex-col items-center gap-20 py-12 sm:py-20 md:flex-row">
-            <Image
-              src={Testimonial}
-              alt="client testimonial"
-              placeholder="blur"
-              quality={100}
-              sizes="100vw"
-              className="w-full max-w-[450px] overflow-hidden rounded-xl object-cover shadow-lg"
-            />
+            <div
+              aria-hidden
+              className="flex h-[280px] w-full max-w-[450px] items-end rounded-xl bg-[linear-gradient(135deg,#0C1A3D_0%,#1B6FE5_55%,#0E8C8B_100%)] p-6 shadow-lg"
+            >
+              <p className="text-sm font-medium text-white/90">
+                Clinic treatment room · SkinTwin Connect
+              </p>
+            </div>
             <div className="flex flex-col gap-y-6">
               <p className="relative text-3xl font-bold text-primary">
                 “SkinTwin has transformed the way we manage our clinic! Booking
@@ -219,14 +210,12 @@ export default function LandingPage() {
                 />
               </p>
               <div className="flex flex-row items-center gap-x-5 self-end">
-                <Image
-                  src={QuotePortrait}
-                  alt="portrait of person who gave the testimonial"
-                  placeholder="blur"
-                  quality={50}
-                  sizes="100px"
-                  className="h-12 w-12 overflow-hidden rounded-full object-cover shadow-lg"
-                />
+                <div
+                  aria-hidden
+                  className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full bg-accent text-sm font-bold text-white shadow-lg"
+                >
+                  JL
+                </div>
                 <div>
                   <p className="text-xl font-bold text-accent">Jamie L.</p>
                   <p className="text-md text-secondary">Radiant Skin Studio</p>
@@ -260,13 +249,17 @@ export default function LandingPage() {
                 </Button>
               </Link>
             </div>
-            <div className="w-full overflow-hidden rounded-lg shadow-xl">
-              <Image
-                src={Dashboard}
-                alt="A screenshot of SkinTwin dashboard"
-                sizes="50vw"
-                className="w-full"
-              />
+            <div className="w-full overflow-hidden rounded-lg border border-white/20 bg-[#07112B] p-5 shadow-xl">
+              <p className="text-xs uppercase tracking-[0.16em] text-white/60">
+                Today&apos;s schedule
+              </p>
+              <p className="mt-2 text-2xl font-bold">
+                Signature Facial · 10:00
+              </p>
+              <p className="text-sm text-white/70">
+                Paid on the connected clinic account. Client CRM and LMS cert
+                share one email identity.
+              </p>
             </div>
           </div>
         </div>
