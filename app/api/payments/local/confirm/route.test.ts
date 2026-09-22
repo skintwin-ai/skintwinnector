@@ -9,6 +9,7 @@ import {POST} from './route';
 
 describe('POST /api/payments/local/confirm', () => {
   beforeEach(() => {
+    process.env.SKINTWIN_LOCAL_STRIPE_STORE = `/tmp/skintwin-local-stripe-confirm-${process.pid}.json`;
     resetLocalStripeForTests();
     resetClinicRecordsForTests();
     process.env.STRIPE_SECRET_KEY = 'sk_test_placeholder';

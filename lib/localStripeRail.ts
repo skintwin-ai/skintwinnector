@@ -1,3 +1,13 @@
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  unlinkSync,
+  writeFileSync,
+} from 'node:fs';
+import {dirname, join} from 'node:path';
+import {tmpdir} from 'node:os';
+
 export type LocalCheckoutSession = {
   id: string;
   url: string;
@@ -11,8 +21,42 @@ export type LocalCheckoutSession = {
   status?: string;
 };
 
-const sessions = new Map<string, LocalCheckoutSession>();
-let seq = 0;
+type Store = {
+  seq: number;
+  sessions: Record<string, LocalCheckoutSession>;
+};
+
+function storePath() {
+  return (
+    process.env.SKINTWIN_LOCAL_STRIPE_STORE ||
+    join(tmpdir(), 'skintwin-local-stripe.json')
+  );
+}
+
+function emptyStore(): Store {
+  return {seq: 0, sessions: {}};
+}
+
+function readStore(): Store {
+  try {
+    const parsed = JSON.parse(readFileSync(storePath(), 'utf8')) as Store;
+    if (!parsed || typeof parsed !== 'object') {
+      return emptyStore();
+    }
+    return {
+      seq: Number(parsed.seq) || 0,
+      sessions: parsed.sessions || {},
+    };
+  } catch {
+    return emptyStore();
+  }
+}
+
+function writeStore(store: Store) {
+  const path = storePath();
+  mkdirSync(dirname(path), {recursive: true});
+  writeFileSync(path, JSON.stringify(store));
+}
 
 export function isLocalStripeKey(key = process.env.STRIPE_SECRET_KEY || '') {
   return (
@@ -31,24 +75,29 @@ export function localAccountIdForEmail(email: string) {
 }
 
 export function getLocalCheckoutSession(id: string) {
-  return sessions.get(id) || null;
+  return readStore().sessions[id] || null;
 }
 
 export function payLocalCheckoutSession(id: string) {
-  const session = sessions.get(id);
+  const store = readStore();
+  const session = store.sessions[id];
   if (!session) {
     return null;
   }
   session.payment_status = 'paid';
+  store.sessions[id] = session;
+  writeStore(store);
   return session;
 }
 
 export function resetLocalStripeForTests() {
-  sessions.clear();
-  seq = 0;
+  const path = storePath();
+  if (existsSync(path)) {
+    unlinkSync(path);
+  }
 }
 
-function missingSession() {
+function missingSession(): never {
   const error = new Error('No such checkout session') as Error & {
     code: string;
     statusCode: number;
@@ -85,8 +134,9 @@ export function createLocalStripe() {
           },
           options?: {stripeAccount?: string}
         ) {
-          seq += 1;
-          const id = `cs_local_${Date.now()}_${seq}`;
+          const store = readStore();
+          store.seq += 1;
+          const id = `cs_local_${Date.now()}_${store.seq}`;
           const origin = (
             process.env.NEXTAUTH_URL || 'http://localhost:3000'
           ).replace(/\/$/, '');
@@ -106,13 +156,17 @@ export function createLocalStripe() {
             payment_intent: `pi_local_${id}`,
             account: options?.stripeAccount || 'acct_local',
           };
-          sessions.set(id, session);
+          store.sessions[id] = session;
+          writeStore(store);
           return session;
         },
         async expire(id: string) {
-          const session = sessions.get(id);
+          const store = readStore();
+          const session = store.sessions[id];
           if (session && session.payment_status !== 'paid') {
             session.status = 'expired';
+            store.sessions[id] = session;
+            writeStore(store);
           }
           return session || {};
         },
@@ -121,7 +175,7 @@ export function createLocalStripe() {
           _opts?: unknown,
           options?: {stripeAccount?: string}
         ) {
-          const session = sessions.get(id);
+          const session = getLocalCheckoutSession(id);
           if (!session) {
             missingSession();
           }

@@ -1,6 +1,7 @@
-import {afterEach, describe, expect, it} from 'vitest';
+import {afterEach, beforeEach, describe, expect, it} from 'vitest';
 import {
   createLocalStripe,
+  getLocalCheckoutSession,
   isLocalStripeKey,
   localAccountIdForEmail,
   payLocalCheckoutSession,
@@ -9,6 +10,12 @@ import {
 
 describe('local Stripe rail', () => {
   afterEach(() => {
+    resetLocalStripeForTests();
+    delete process.env.SKINTWIN_LOCAL_STRIPE_STORE;
+  });
+
+  beforeEach(() => {
+    process.env.SKINTWIN_LOCAL_STRIPE_STORE = `/tmp/skintwin-local-stripe-test-${process.pid}.json`;
     resetLocalStripeForTests();
   });
 
@@ -47,5 +54,6 @@ describe('local Stripe rail', () => {
     );
     expect(retrieved.payment_status).toBe('paid');
     expect(retrieved.amount_total).toBe(8500);
+    expect(getLocalCheckoutSession(created.id)?.payment_status).toBe('paid');
   });
 });
