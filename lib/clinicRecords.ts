@@ -3,6 +3,7 @@ import type {
   Client,
   ServiceSelection,
 } from '@/app/contexts/booking/types';
+import {canonicalEmail} from '@/lib/platformIdentity';
 
 export type ClinicClientRecord = Client & {
   id: string;
@@ -52,7 +53,7 @@ function nowIso() {
 }
 
 function normalizeEmail(email: string) {
-  return email.trim().toLowerCase();
+  return canonicalEmail(email);
 }
 
 function clientKey(operatorAccountId: string, email: string) {
