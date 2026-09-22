@@ -97,3 +97,15 @@ export function verifyPlatformSession(
     return null;
   }
 }
+
+export function operatorFromPlatformActor(actor: PlatformActor) {
+  return {
+    id: `platform:${actor.email}`,
+    email: actor.email,
+    stripeAccountId: '',
+    primaryColor: null,
+    companyName: actor.name,
+    companyLogoUrl: null,
+    setup: false,
+  };
+}

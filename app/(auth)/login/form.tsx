@@ -21,6 +21,28 @@ import {UserFormSchema} from '@/lib/forms';
 
 export default function LoginForm() {
   const router = useRouter();
+  const [platformPending, setPlatformPending] = React.useState(false);
+
+  React.useEffect(() => {
+    const token = new URLSearchParams(window.location.search).get(
+      'platform_session'
+    );
+    if (!token) {
+      return;
+    }
+    setPlatformPending(true);
+    signIn('platform', {platformSession: token, redirect: false})
+      .then((result) => {
+        if (result?.ok) {
+          router.push('/home');
+          return;
+        }
+        setPlatformPending(false);
+      })
+      .catch(() => {
+        setPlatformPending(false);
+      });
+  }, [router]);
 
   const form = useForm<z.infer<typeof UserFormSchema>>({
     resolver: zodResolver(UserFormSchema),
@@ -99,9 +121,12 @@ export default function LoginForm() {
             )}
           />
         </div>
+        {platformPending && (
+          <p className="text-sm text-subdued">Continuing with SkinTwin…</p>
+        )}
         <Button
           type="submit"
-          disabled={form.formState.isSubmitting}
+          disabled={form.formState.isSubmitting || platformPending}
           data-testid="submit-login-button"
           className={'w-full rounded-md bg-accent p-2 font-bold text-white'}
         >

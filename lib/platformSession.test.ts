@@ -1,5 +1,9 @@
 import {afterEach, describe, expect, it} from 'vitest';
-import {issuePlatformSession, verifyPlatformSession} from './platformSession';
+import {
+  issuePlatformSession,
+  operatorFromPlatformActor,
+  verifyPlatformSession,
+} from './platformSession';
 
 describe('platform session', () => {
   afterEach(() => {
@@ -28,6 +32,21 @@ describe('platform session', () => {
     expect(verifyPlatformSession('Bearer mesh-secret')?.email).toBe(
       'platform@skintwin.ai'
     );
+  });
+
+  it('builds a Connect operator from the actor', () => {
+    expect(
+      operatorFromPlatformActor({
+        email: 'demo@skintwin.ai',
+        name: 'Dr. Jane Doe',
+        role: 'therapist',
+        source: 'regima-training-lms',
+      })
+    ).toMatchObject({
+      id: 'platform:demo@skintwin.ai',
+      email: 'demo@skintwin.ai',
+      companyName: 'Dr. Jane Doe',
+    });
   });
 
   it('rejects a token signed with another secret', () => {

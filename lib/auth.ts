@@ -125,6 +125,38 @@ export const authOptions: AuthOptions = {
       },
     }),
     CredentialsProvider({
+      id: 'platform',
+      name: 'SkinTwin Platform',
+      credentials: {
+        platformSession: {},
+      },
+      async authorize(credentials) {
+        const {verifyPlatformSession, operatorFromPlatformActor} = await import(
+          '@/lib/platformSession'
+        );
+        const actor = verifyPlatformSession(
+          typeof credentials?.platformSession === 'string'
+            ? credentials.platformSession
+            : null
+        );
+        if (!actor) {
+          return null;
+        }
+
+        try {
+          await dbConnect();
+          const existing = await Salon.findOne({email: actor.email});
+          if (existing) {
+            return userPayloadFromSalon(existing, actor.email);
+          }
+        } catch (err) {
+          console.warn('Platform sign-in falling back without Salon row', err);
+        }
+
+        return operatorFromPlatformActor(actor);
+      },
+    }),
+    CredentialsProvider({
       id: 'login',
       name: 'Email & Password',
       credentials: {
