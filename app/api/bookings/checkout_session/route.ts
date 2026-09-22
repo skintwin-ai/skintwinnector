@@ -2,6 +2,7 @@ import {getServerSession} from 'next-auth';
 import {NextRequest, NextResponse} from 'next/server';
 import {isCheckoutSessionId} from '@/lib/bookingCheckout';
 import {authOptions} from '@/lib/auth';
+import {markBookingPayment} from '@/lib/clinicRecords';
 import {stripe} from '@/lib/stripe';
 
 function jsonError(error: string, status: number) {
@@ -55,6 +56,19 @@ export async function GET(req: NextRequest) {
       sessionId: checkoutSession.id,
       draftId: checkoutSession.metadata?.draftId,
     });
+
+    try {
+      await markBookingPayment({
+        checkoutSessionId: checkoutSession.id,
+        operatorAccountId: session.user.stripeAccountId,
+        paymentStatus: checkoutSession.payment_status,
+        paymentIntentId,
+        amountTotal: checkoutSession.amount_total,
+        currency: checkoutSession.currency,
+      });
+    } catch (error) {
+      console.error('Failed to persist retrieved booking payment', error);
+    }
 
     return NextResponse.json({
       sessionId: checkoutSession.id,

@@ -1,5 +1,6 @@
 import {type NextRequest} from 'next/server';
 import {NextResponse} from 'next/server';
+import {markBookingPayment} from '@/lib/clinicRecords';
 import {stripe} from '@/lib/stripe';
 
 function jsonError(error: string, status: number) {
@@ -56,6 +57,23 @@ async function logBookingCheckoutEvent(event: {
     sessionId: retrieved.id,
     paymentStatus: retrieved.payment_status,
     draftId,
+  });
+
+  const paymentIntent = retrieved.payment_intent;
+  const paymentIntentId =
+    typeof paymentIntent === 'string'
+      ? paymentIntent
+      : paymentIntent && typeof paymentIntent === 'object'
+        ? paymentIntent.id
+        : null;
+
+  await markBookingPayment({
+    checkoutSessionId: retrieved.id,
+    operatorAccountId: event.account,
+    paymentStatus: retrieved.payment_status,
+    paymentIntentId,
+    amountTotal: retrieved.amount_total,
+    currency: retrieved.currency,
   });
 }
 

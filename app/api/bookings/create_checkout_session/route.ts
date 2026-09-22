@@ -11,6 +11,7 @@ import {
   type CheckoutCatalogService,
 } from '@/lib/bookingCheckout';
 import {authOptions} from '@/lib/auth';
+import {persistCheckoutBooking} from '@/lib/clinicRecords';
 import {stripe} from '@/lib/stripe';
 
 const catalog = servicesData as CheckoutCatalogService[];
@@ -133,6 +134,23 @@ export async function POST(req: NextRequest) {
       sessionId: checkoutSession.id,
       draftId,
     });
+
+    try {
+      await persistCheckoutBooking({
+        operatorAccountId: session.user.stripeAccountId,
+        draftId,
+        checkoutSessionId: checkoutSession.id,
+        paymentStatus: checkoutSession.payment_status || 'unpaid',
+        amountTotal: checkoutSession.amount_total,
+        currency: checkoutSession.currency,
+        displayTotal: built.displayTotal,
+        services: selections,
+        appointment: body.appointment,
+        client: body.client,
+      });
+    } catch (error) {
+      console.error('Failed to persist booking draft', error);
+    }
 
     return NextResponse.json({
       checkoutUrl: checkoutSession.url,

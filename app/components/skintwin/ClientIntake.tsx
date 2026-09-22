@@ -65,20 +65,28 @@ const ClientIntake = () => {
     setErrors({});
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 400));
-      if (lookupEmail === 'adaeze.obi@example.com') {
-        setFormData({
-          firstName: 'Adaeze',
-          lastName: 'Obi',
-          email: 'adaeze.obi@example.com',
-          phone: '+2348012345678',
-          consentAccepted: true,
-        });
-        setClientFound(true);
-      } else {
+      const response = await fetch(
+        `/api/clients/lookup?email=${encodeURIComponent(lookupEmail)}`
+      );
+      const payload = await response.json();
+      if (!response.ok || !payload.client) {
         setClientFound(false);
-        setErrors({lookupEmail: 'No client found with this email'});
+        setErrors({
+          lookupEmail: payload.error || 'No client found with this email',
+        });
+        return;
       }
+      setFormData({
+        firstName: payload.client.firstName || '',
+        lastName: payload.client.lastName || '',
+        email: payload.client.email || lookupEmail,
+        phone: payload.client.phone || '',
+        consentAccepted: Boolean(payload.client.consentAccepted),
+      });
+      setClientFound(true);
+    } catch {
+      setClientFound(false);
+      setErrors({lookupEmail: 'Unable to look up this client'});
     } finally {
       setIsLookingUp(false);
     }
@@ -142,6 +150,23 @@ const ClientIntake = () => {
     if (booking.appointment) {
       booking.clearAppointment();
     }
+    try {
+      const response = await fetch('/api/clients', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(client),
+      });
+      if (!response.ok) {
+        const payload = await response.json();
+        setErrors({
+          email: payload.error || 'Unable to save this client',
+        });
+        return;
+      }
+    } catch {
+      setErrors({email: 'Unable to save this client'});
+      return;
+    }
     router.push('/clients');
   };
 
@@ -157,8 +182,7 @@ const ClientIntake = () => {
       <Container className="panel-accent-top space-y-3 border-[color:var(--hairline)]">
         <h2 className="text-lg font-semibold">Returning client?</h2>
         <p className="text-sm text-subdued">
-          Enter an email to prefill client information. Try
-          adaeze.obi@example.com.
+          Look up a saved clinic client by email to prefill intake.
         </p>
         <div className="flex flex-col gap-2 sm:flex-row">
           <Input

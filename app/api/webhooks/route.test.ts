@@ -4,6 +4,12 @@ import {NextRequest} from 'next/server';
 const constructEvent = vi.fn();
 const sessionsRetrieve = vi.fn();
 
+const markBookingPayment = vi.fn().mockResolvedValue({});
+
+vi.mock('@/lib/clinicRecords', () => ({
+  markBookingPayment: (...args: unknown[]) => markBookingPayment(...args),
+}));
+
 vi.mock('@/lib/stripe', () => ({
   stripe: {
     webhooks: {
@@ -53,6 +59,13 @@ describe('POST /api/webhooks', () => {
       'cs_test_1',
       {},
       {stripeAccount: 'acct_123'}
+    );
+    expect(markBookingPayment).toHaveBeenCalledWith(
+      expect.objectContaining({
+        checkoutSessionId: 'cs_test_1',
+        operatorAccountId: 'acct_123',
+        paymentStatus: 'paid',
+      })
     );
   });
 

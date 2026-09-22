@@ -14,6 +14,13 @@ vi.mock('@/lib/auth', () => ({
   authOptions: {},
 }));
 
+const persistCheckoutBooking = vi.fn().mockResolvedValue({});
+
+vi.mock('@/lib/clinicRecords', () => ({
+  persistCheckoutBooking: (...args: unknown[]) =>
+    persistCheckoutBooking(...args),
+}));
+
 vi.mock('@/lib/stripe', () => ({
   stripe: {
     accounts: {retrieve: (...args: unknown[]) => accountsRetrieve(...args)},
@@ -81,6 +88,13 @@ describe('POST /api/bookings/create_checkout_session', () => {
       checkoutUrl: 'https://checkout.stripe.com/c/pay/cs_test_1',
       sessionId: 'cs_test_1',
     });
+    expect(persistCheckoutBooking).toHaveBeenCalledWith(
+      expect.objectContaining({
+        operatorAccountId: 'acct_123',
+        draftId: 'draft-1',
+        checkoutSessionId: 'cs_test_1',
+      })
+    );
     expect(sessionsCreate).toHaveBeenCalledWith(
       expect.objectContaining({
         mode: 'payment',
