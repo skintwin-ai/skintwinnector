@@ -1,5 +1,6 @@
 import {createHmac, timingSafeEqual} from 'node:crypto';
 import {canonicalEmail} from '@/lib/platformIdentity';
+import {localAccountIdForEmail} from '@/lib/localStripeRail';
 
 export type PlatformActor = {
   email: string;
@@ -102,7 +103,7 @@ export function operatorFromPlatformActor(actor: PlatformActor) {
   return {
     id: `platform:${actor.email}`,
     email: actor.email,
-    stripeAccountId: '',
+    stripeAccountId: localAccountIdForEmail(actor.email),
     primaryColor: null,
     companyName: actor.name,
     companyLogoUrl: null,

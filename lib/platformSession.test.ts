@@ -46,6 +46,7 @@ describe('platform session', () => {
       id: 'platform:demo@skintwin.ai',
       email: 'demo@skintwin.ai',
       companyName: 'Dr. Jane Doe',
+      stripeAccountId: 'acct_local_demo_skintwin_ai',
     });
   });
 
