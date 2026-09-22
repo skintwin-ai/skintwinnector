@@ -8,10 +8,17 @@
     "bufferMinutes": 15,
     "price": 8500,
     "currency": "NGN",
-    "providerTypes": ["esthetician", "specialist"],
+    "providerTypes": [
+      "esthetician",
+      "specialist"
+    ],
     "requiresConsultation": false,
-    "addOns": ["srv-010", "srv-011"],
-    "image": "signature_facial.png"
+    "addOns": [
+      "srv-010",
+      "srv-011"
+    ],
+    "image": "signature_facial.png",
+    "usdChargeCents": 8500
   },
   {
     "id": "srv-002",
@@ -22,10 +29,15 @@
     "bufferMinutes": 15,
     "price": 12000,
     "currency": "NGN",
-    "providerTypes": ["esthetician"],
+    "providerTypes": [
+      "esthetician"
+    ],
     "requiresConsultation": false,
-    "addOns": ["srv-010"],
-    "image": "deep_cleansing.png"
+    "addOns": [
+      "srv-010"
+    ],
+    "image": "deep_cleansing.png",
+    "usdChargeCents": 12000
   },
   {
     "id": "srv-003",
@@ -36,10 +48,13 @@
     "bufferMinutes": 10,
     "price": 3000,
     "currency": "NGN",
-    "providerTypes": ["specialist"],
+    "providerTypes": [
+      "specialist"
+    ],
     "requiresConsultation": false,
     "addOns": [],
-    "image": "consultation.png"
+    "image": "consultation.png",
+    "usdChargeCents": 3000
   },
   {
     "id": "srv-004",
@@ -50,10 +65,16 @@
     "bufferMinutes": 20,
     "price": 25000,
     "currency": "NGN",
-    "providerTypes": ["specialist"],
+    "providerTypes": [
+      "specialist"
+    ],
     "requiresConsultation": true,
-    "addOns": ["srv-011", "srv-012"],
-    "image": "anti_aging.png"
+    "addOns": [
+      "srv-011",
+      "srv-012"
+    ],
+    "image": "anti_aging.png",
+    "usdChargeCents": 25000
   },
   {
     "id": "srv-005",
@@ -64,10 +85,16 @@
     "bufferMinutes": 15,
     "price": 15000,
     "currency": "NGN",
-    "providerTypes": ["esthetician", "specialist"],
+    "providerTypes": [
+      "esthetician",
+      "specialist"
+    ],
     "requiresConsultation": false,
-    "addOns": ["srv-010"],
-    "image": "hydrating.png"
+    "addOns": [
+      "srv-010"
+    ],
+    "image": "hydrating.png",
+    "usdChargeCents": 15000
   },
   {
     "id": "srv-006",
@@ -78,10 +105,13 @@
     "bufferMinutes": 30,
     "price": 35000,
     "currency": "NGN",
-    "providerTypes": ["specialist"],
+    "providerTypes": [
+      "specialist"
+    ],
     "requiresConsultation": true,
     "addOns": [],
-    "image": "wellness_package.png"
+    "image": "wellness_package.png",
+    "usdChargeCents": 35000
   },
   {
     "id": "srv-007",
@@ -92,10 +122,15 @@
     "bufferMinutes": 10,
     "price": 5000,
     "currency": "NGN",
-    "providerTypes": ["esthetician"],
+    "providerTypes": [
+      "esthetician"
+    ],
     "requiresConsultation": false,
-    "addOns": ["srv-010"],
-    "image": "express_glow.png"
+    "addOns": [
+      "srv-010"
+    ],
+    "image": "express_glow.png",
+    "usdChargeCents": 5000
   },
   {
     "id": "srv-008",
@@ -106,10 +141,15 @@
     "bufferMinutes": 15,
     "price": 18000,
     "currency": "NGN",
-    "providerTypes": ["specialist"],
+    "providerTypes": [
+      "specialist"
+    ],
     "requiresConsultation": true,
-    "addOns": ["srv-011"],
-    "image": "acne_treatment.png"
+    "addOns": [
+      "srv-011"
+    ],
+    "image": "acne_treatment.png",
+    "usdChargeCents": 18000
   },
   {
     "id": "srv-009",
@@ -120,10 +160,17 @@
     "bufferMinutes": 30,
     "price": 50000,
     "currency": "NGN",
-    "providerTypes": ["specialist"],
+    "providerTypes": [
+      "specialist"
+    ],
     "requiresConsultation": true,
-    "addOns": ["srv-010", "srv-011", "srv-012"],
-    "image": "bridal_glow.png"
+    "addOns": [
+      "srv-010",
+      "srv-011",
+      "srv-012"
+    ],
+    "image": "bridal_glow.png",
+    "usdChargeCents": 50000
   },
   {
     "id": "srv-010",
@@ -134,10 +181,14 @@
     "bufferMinutes": 0,
     "price": 3500,
     "currency": "NGN",
-    "providerTypes": ["esthetician", "specialist"],
+    "providerTypes": [
+      "esthetician",
+      "specialist"
+    ],
     "requiresConsultation": false,
     "addOns": [],
-    "image": "eye_treatment.png"
+    "image": "eye_treatment.png",
+    "usdChargeCents": 3500
   },
   {
     "id": "srv-011",
@@ -148,10 +199,14 @@
     "bufferMinutes": 0,
     "price": 5000,
     "currency": "NGN",
-    "providerTypes": ["esthetician", "specialist"],
+    "providerTypes": [
+      "esthetician",
+      "specialist"
+    ],
     "requiresConsultation": false,
     "addOns": [],
-    "image": "led_therapy.png"
+    "image": "led_therapy.png",
+    "usdChargeCents": 5000
   },
   {
     "id": "srv-012",
@@ -162,9 +217,13 @@
     "bufferMinutes": 0,
     "price": 4000,
     "currency": "NGN",
-    "providerTypes": ["esthetician", "specialist"],
+    "providerTypes": [
+      "esthetician",
+      "specialist"
+    ],
     "requiresConsultation": false,
     "addOns": [],
-    "image": "collagen_mask.png"
+    "image": "collagen_mask.png",
+    "usdChargeCents": 4000
   }
 ]

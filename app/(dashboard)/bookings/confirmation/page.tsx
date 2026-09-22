@@ -1,7 +1,14 @@
 'use client';
 
-import BookingConfirmation from '@/app/components/skintwin/BookingConfirmation';
+import {Suspense} from 'react';
+import BookingConfirmation, {
+  PaymentChecking,
+} from '@/app/components/skintwin/BookingConfirmation';
 
 export default function ConfirmationPage() {
-  return <BookingConfirmation />;
+  return (
+    <Suspense fallback={<PaymentChecking />}>
+      <BookingConfirmation />
+    </Suspense>
+  );
 }

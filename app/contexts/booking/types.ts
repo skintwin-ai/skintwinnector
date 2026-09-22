@@ -6,6 +6,7 @@ export interface Service {
   durationMinutes: number;
   bufferMinutes: number;
   price: number;
+  usdChargeCents: number;
   currency: string;
   providerTypes: string[];
   requiresConsultation: boolean;
@@ -51,8 +52,6 @@ export interface Client {
 }
 
 export interface CheckoutState {
-  invoiceId: string;
-  offlineReference: string;
   status: 'idle' | 'creating' | 'pending' | 'paid' | 'failed';
   error?: string;
 }
@@ -76,7 +75,11 @@ export interface BookingContextValue extends BookingState {
   updateIntakeStatus: (completed: boolean) => void;
   clearClient: () => void;
   setCheckoutStatus: (status: CheckoutState['status']) => void;
-  setInvoiceDetails: (invoiceId: string, offlineReference: string) => void;
+  restoreBookingSnapshot: (snapshot: {
+    services: ServiceSelection[];
+    appointment: Appointment | null;
+    client: Client | null;
+  }) => void;
   setCheckoutError: (error: string) => void;
   clearCheckout: () => void;
   resetBooking: () => void;

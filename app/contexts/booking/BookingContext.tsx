@@ -18,8 +18,6 @@ import type {
 } from './types';
 
 const initialCheckout: CheckoutState = {
-  invoiceId: '',
-  offlineReference: '',
   status: 'idle',
 };
 
@@ -121,12 +119,23 @@ export function BookingProvider({children}: {children: React.ReactNode}) {
   }, []);
 
   const setCheckoutStatus = useCallback((status: CheckoutState['status']) => {
-    setCheckout((prev) => ({...prev, status, error: undefined}));
+    setCheckout((prev) => {
+      if (prev.status === status && prev.error === undefined) {
+        return prev;
+      }
+      return {...prev, status, error: undefined};
+    });
   }, []);
 
-  const setInvoiceDetails = useCallback(
-    (invoiceId: string, offlineReference: string) => {
-      setCheckout((prev) => ({...prev, invoiceId, offlineReference}));
+  const restoreBookingSnapshot = useCallback(
+    (snapshot: {
+      services: ServiceSelection[];
+      appointment: Appointment | null;
+      client: Client | null;
+    }) => {
+      setServices(snapshot.services);
+      setAppointmentState(snapshot.appointment);
+      setClientState(snapshot.client);
     },
     []
   );
@@ -202,7 +211,7 @@ export function BookingProvider({children}: {children: React.ReactNode}) {
       updateIntakeStatus,
       clearClient,
       setCheckoutStatus,
-      setInvoiceDetails,
+      restoreBookingSnapshot,
       setCheckoutError,
       clearCheckout,
       resetBooking,
@@ -225,7 +234,7 @@ export function BookingProvider({children}: {children: React.ReactNode}) {
       updateIntakeStatus,
       clearClient,
       setCheckoutStatus,
-      setInvoiceDetails,
+      restoreBookingSnapshot,
       setCheckoutError,
       clearCheckout,
       resetBooking,
