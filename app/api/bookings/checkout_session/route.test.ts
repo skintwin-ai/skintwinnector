@@ -12,6 +12,12 @@ vi.mock('@/lib/auth', () => ({
   authOptions: {},
 }));
 
+const markBookingPayment = vi.fn().mockResolvedValue({});
+
+vi.mock('@/lib/clinicRecords', () => ({
+  markBookingPayment: (...args: unknown[]) => markBookingPayment(...args),
+}));
+
 vi.mock('@/lib/stripe', () => ({
   stripe: {
     checkout: {

@@ -79,7 +79,7 @@ export default function AuthLayout({
             >
               Stripe Connect embedded components
             </a>
-            . SkinTwin is not a real product.
+            . SkinTwin is the clinic payments and booking rail for the platform.
           </p>
         </div>
       </div>

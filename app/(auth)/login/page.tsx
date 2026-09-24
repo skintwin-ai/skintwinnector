@@ -2,12 +2,22 @@ import Link from 'next/link';
 import {getServerSession} from 'next-auth';
 import {redirect} from 'next/navigation';
 import Form from './form';
+import {resolvePlatformContinue} from '@/lib/platformContinue';
 
-export default async function Login() {
+export default async function Login({
+  searchParams,
+}: {
+  searchParams?: {next?: string; callbackUrl?: string};
+}) {
   const session = await getServerSession();
 
   if (session) {
-    redirect('/home');
+    redirect(
+      resolvePlatformContinue(
+        searchParams?.next || searchParams?.callbackUrl,
+        process.env.NEXTAUTH_URL || 'http://localhost:3000'
+      )
+    );
   }
 
   return (

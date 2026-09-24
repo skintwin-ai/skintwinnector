@@ -18,9 +18,49 @@ import {
 } from '@/components/ui/form';
 import {Input} from '@/components/ui/input';
 import {UserFormSchema} from '@/lib/forms';
+import {
+  isSameOriginContinue,
+  resolvePlatformContinue,
+  sameOriginPath,
+} from '@/lib/platformContinue';
 
 export default function LoginForm() {
   const router = useRouter();
+  const [platformPending, setPlatformPending] = React.useState(false);
+
+  const continueAfterSignIn = React.useCallback(() => {
+    const params = new URLSearchParams(window.location.search);
+    const next = resolvePlatformContinue(
+      params.get('next') || params.get('callbackUrl'),
+      window.location.origin
+    );
+    if (isSameOriginContinue(next, window.location.origin)) {
+      router.push(sameOriginPath(next));
+      return;
+    }
+    window.location.assign(next);
+  }, [router]);
+
+  React.useEffect(() => {
+    const token = new URLSearchParams(window.location.search).get(
+      'platform_session'
+    );
+    if (!token) {
+      return;
+    }
+    setPlatformPending(true);
+    signIn('platform', {platformSession: token, redirect: false})
+      .then((result) => {
+        if (result?.ok) {
+          continueAfterSignIn();
+          return;
+        }
+        setPlatformPending(false);
+      })
+      .catch(() => {
+        setPlatformPending(false);
+      });
+  }, [continueAfterSignIn]);
 
   const form = useForm<z.infer<typeof UserFormSchema>>({
     resolver: zodResolver(UserFormSchema),
@@ -44,7 +84,7 @@ export default function LoginForm() {
           message: 'Invalid email or password. Please try again.',
         });
       } else if (result?.ok) {
-        router.push('/home');
+        continueAfterSignIn();
       }
     } catch (error: any) {
       console.error('An error occurred when signing in', error);
@@ -99,9 +139,12 @@ export default function LoginForm() {
             )}
           />
         </div>
+        {platformPending && (
+          <p className="text-sm text-subdued">Continuing with SkinTwin…</p>
+        )}
         <Button
           type="submit"
-          disabled={form.formState.isSubmitting}
+          disabled={form.formState.isSubmitting || platformPending}
           data-testid="submit-login-button"
           className={'w-full rounded-md bg-accent p-2 font-bold text-white'}
         >

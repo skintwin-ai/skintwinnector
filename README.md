@@ -4,7 +4,7 @@ SkinTwin is a vertical SaaS skincare platform for clinics and practitioners to m
 
 **See a live version on [skintwin.ai](https://skintwin.ai).**
 
-<img src="public/cover.png">
+SkinTwin Connect is the clinic booking and Stripe Connect rail: intake, hosted Checkout on the connected account, paid receipts, and a durable client/schedule record keyed by canonical email.
 
 ## Features
 

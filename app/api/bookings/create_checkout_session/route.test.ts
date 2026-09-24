@@ -14,6 +14,13 @@ vi.mock('@/lib/auth', () => ({
   authOptions: {},
 }));
 
+const persistCheckoutBooking = vi.fn().mockResolvedValue({});
+
+vi.mock('@/lib/clinicRecords', () => ({
+  persistCheckoutBooking: (...args: unknown[]) =>
+    persistCheckoutBooking(...args),
+}));
+
 vi.mock('@/lib/stripe', () => ({
   stripe: {
     accounts: {retrieve: (...args: unknown[]) => accountsRetrieve(...args)},
@@ -81,10 +88,18 @@ describe('POST /api/bookings/create_checkout_session', () => {
       checkoutUrl: 'https://checkout.stripe.com/c/pay/cs_test_1',
       sessionId: 'cs_test_1',
     });
+    expect(persistCheckoutBooking).toHaveBeenCalledWith(
+      expect.objectContaining({
+        operatorAccountId: 'acct_123',
+        draftId: 'draft-1',
+        checkoutSessionId: 'cs_test_1',
+      })
+    );
     expect(sessionsCreate).toHaveBeenCalledWith(
       expect.objectContaining({
         mode: 'payment',
         customer_email: 'adaeze.obi@example.com',
+        payment_intent_data: {application_fee_amount: 850},
         line_items: [
           expect.objectContaining({
             quantity: 1,
@@ -138,8 +153,29 @@ describe('POST /api/bookings/create_checkout_session', () => {
     expect(sessionsCreate).not.toHaveBeenCalled();
   });
 
-  it('returns 400 when the connected account is not usd', async () => {
+  it('charges NGN connected accounts in kobo with a platform fee', async () => {
     accountsRetrieve.mockResolvedValue({default_currency: 'ngn'});
+    const {POST} = await import('./route');
+    const response = await POST(postRequest(validBody));
+    expect(response.status).toBe(200);
+    expect(sessionsCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        payment_intent_data: {application_fee_amount: 85000},
+        line_items: [
+          expect.objectContaining({
+            price_data: expect.objectContaining({
+              currency: 'ngn',
+              unit_amount: 850000,
+            }),
+          }),
+        ],
+      }),
+      expect.objectContaining({stripeAccount: 'acct_123'})
+    );
+  });
+
+  it('returns 400 when the connected account currency is unsupported', async () => {
+    accountsRetrieve.mockResolvedValue({default_currency: 'eur'});
     const {POST} = await import('./route');
     const response = await POST(postRequest(validBody));
     expect(response.status).toBe(400);

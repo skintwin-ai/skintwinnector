@@ -3,6 +3,7 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 import dbConnect from '@/lib/dbConnect';
 import Salon from '../app/models/salon';
 import {stripe} from '@/lib/stripe';
+import {isLocalStripeKey, localAccountIdForEmail} from '@/lib/localStripeRail';
 import {resolveControllerParams} from './utils';
 import {
   DEFAULT_BRAND_NAME,
@@ -23,10 +24,13 @@ type SalonDoc = {
 
 /** Fields merged into JWT `token.user` and used by the session callback after credentials sign-in. */
 function userPayloadFromSalon(user: SalonDoc, emailOverride?: string) {
+  const email = emailOverride ?? user.email;
   return {
     id: String(user._id),
-    email: emailOverride ?? user.email,
-    stripeAccountId: user.stripeAccountId,
+    email,
+    stripeAccountId:
+      user.stripeAccountId ||
+      (isLocalStripeKey() ? localAccountIdForEmail(email) : ''),
     primaryColor: user.primaryColor,
     companyName: user.companyName,
     companyLogoUrl: user.companyLogoUrl,
@@ -122,6 +126,38 @@ export const authOptions: AuthOptions = {
         }
 
         return userPayloadFromSalon(user, credentials?.email);
+      },
+    }),
+    CredentialsProvider({
+      id: 'platform',
+      name: 'SkinTwin Platform',
+      credentials: {
+        platformSession: {},
+      },
+      async authorize(credentials) {
+        const {verifyPlatformSession, operatorFromPlatformActor} = await import(
+          '@/lib/platformSession'
+        );
+        const actor = verifyPlatformSession(
+          typeof credentials?.platformSession === 'string'
+            ? credentials.platformSession
+            : null
+        );
+        if (!actor) {
+          return null;
+        }
+
+        try {
+          await dbConnect();
+          const existing = await Salon.findOne({email: actor.email});
+          if (existing) {
+            return userPayloadFromSalon(existing, actor.email);
+          }
+        } catch (err) {
+          console.warn('Platform sign-in falling back without Salon row', err);
+        }
+
+        return operatorFromPlatformActor(actor);
       },
     }),
     CredentialsProvider({

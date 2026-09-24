@@ -15,6 +15,42 @@ export type CheckoutCatalogService = {
   addOns: string[];
 };
 
+export const SUPPORTED_CHARGE_CURRENCIES = ['usd', 'ngn'] as const;
+export type ChargeCurrency = (typeof SUPPORTED_CHARGE_CURRENCIES)[number];
+
+export const DEFAULT_APPLICATION_FEE_BPS = 1000;
+
+export function isSupportedChargeCurrency(
+  value: string | null | undefined
+): value is ChargeCurrency {
+  return (
+    typeof value === 'string' &&
+    SUPPORTED_CHARGE_CURRENCIES.includes(value as ChargeCurrency)
+  );
+}
+
+export function unitAmountForCurrency(
+  item: CheckoutCatalogService,
+  chargeCurrency: ChargeCurrency
+): number {
+  if (chargeCurrency === 'usd') {
+    return item.usdChargeCents;
+  }
+  // Catalog `price` is NGN major units. Stripe NGN is kobo.
+  return item.price * 100;
+}
+
+export function applicationFeeAmount(
+  chargeTotal: number,
+  feeBps = Number(process.env.SKINTWIN_APPLICATION_FEE_BPS) ||
+    DEFAULT_APPLICATION_FEE_BPS
+): number {
+  if (!Number.isFinite(feeBps) || feeBps <= 0 || chargeTotal <= 0) {
+    return 0;
+  }
+  return Math.min(chargeTotal - 1, Math.round((chargeTotal * feeBps) / 10000));
+}
+
 export type CheckoutLineItem = {
   price_data: {
     currency: string;
@@ -101,8 +137,14 @@ export function buildCheckoutLineItems(
   lineItems: CheckoutLineItem[];
   displayTotal: number;
   chargeTotal: number;
-  chargeCurrency: string;
+  chargeCurrency: ChargeCurrency;
+  applicationFeeAmount: number;
 } {
+  if (!isSupportedChargeCurrency(chargeCurrency)) {
+    throw new BookingCheckoutValidationError(
+      `Unsupported charge currency: ${chargeCurrency}`
+    );
+  }
   if (!selections.length) {
     throw new BookingCheckoutValidationError('Select at least one service');
   }
@@ -113,16 +155,17 @@ export function buildCheckoutLineItems(
   let chargeTotal = 0;
 
   const addLine = (item: CheckoutCatalogService, quantity: number) => {
+    const unitAmount = unitAmountForCurrency(item, chargeCurrency);
     lineItems.push({
       price_data: {
         currency: chargeCurrency,
-        unit_amount: item.usdChargeCents,
+        unit_amount: unitAmount,
         product_data: {name: item.name},
       },
       quantity,
     });
     displayTotal += item.price * quantity;
-    chargeTotal += item.usdChargeCents * quantity;
+    chargeTotal += unitAmount * quantity;
   };
 
   for (const selection of selections) {
@@ -164,5 +207,11 @@ export function buildCheckoutLineItems(
     }
   }
 
-  return {lineItems, displayTotal, chargeTotal, chargeCurrency};
+  return {
+    lineItems,
+    displayTotal,
+    chargeTotal,
+    chargeCurrency,
+    applicationFeeAmount: applicationFeeAmount(chargeTotal),
+  };
 }

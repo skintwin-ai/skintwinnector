@@ -17,6 +17,7 @@ import {
   formatDuration,
   toLocalDateKey,
 } from '@/lib/salon';
+import type {ClinicBookingRecord} from '@/lib/clinicRecords';
 
 const services = servicesData as Service[];
 const providers = providersData as Provider[];
@@ -34,6 +35,7 @@ const BookingScheduler = () => {
   const [selectedProvider, setSelectedProvider] = useState(
     booking.appointment?.providerId || ''
   );
+  const [bookedSlots, setBookedSlots] = useState<ClinicBookingRecord[]>([]);
 
   const bookedServices = useMemo(() => {
     return booking.services
@@ -67,27 +69,62 @@ const BookingScheduler = () => {
     return dates;
   }, []);
 
+  useEffect(() => {
+    if (!selectedDate) {
+      setBookedSlots([]);
+      return;
+    }
+    let cancelled = false;
+    fetch(`/api/bookings?date=${selectedDate}`)
+      .then(async (response) => {
+        const payload = await response.json();
+        if (!cancelled) {
+          setBookedSlots(payload.bookings || []);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setBookedSlots([]);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedDate]);
+
   const timeSlots = useMemo(() => {
     const slots: {time: string; available: boolean}[] = [];
+    const toMinutes = (time: string) => {
+      const [hours, minutes] = time.split(':').map(Number);
+      return hours * 60 + minutes;
+    };
     for (let hour = 8; hour < 18; hour++) {
       for (const minute of [0, 30]) {
         const time = `${hour.toString().padStart(2, '0')}:${minute
           .toString()
           .padStart(2, '0')}`;
-        const seed = `${selectedDate}-${selectedProvider}-${time}`;
-        const available =
-          selectedDate && selectedProvider
-            ? seed
-                .split('')
-                .reduce((sum, char) => sum + char.charCodeAt(0), 0) %
-                5 !==
-              0
-            : true;
-        slots.push({time, available});
+        const start = toMinutes(time);
+        const end = start + totalDuration;
+        const conflict = bookedSlots.some((item) => {
+          if (
+            selectedProvider &&
+            item.appointment?.providerId &&
+            item.appointment.providerId !== selectedProvider
+          ) {
+            return false;
+          }
+          if (!item.appointment?.startTime || !item.appointment.endTime) {
+            return false;
+          }
+          const existingStart = toMinutes(item.appointment.startTime);
+          const existingEnd = toMinutes(item.appointment.endTime);
+          return start < existingEnd && end > existingStart;
+        });
+        slots.push({time, available: !conflict});
       }
     }
     return slots;
-  }, [selectedDate, selectedProvider]);
+  }, [bookedSlots, selectedProvider, totalDuration]);
 
   const selectedSlot = timeSlots.find((slot) => slot.time === selectedTime);
   const canContinue = Boolean(

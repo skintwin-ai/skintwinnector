@@ -1,11 +1,18 @@
-import schedule from '@/app/data/schedule.json';
+'use client';
+
+import {useEffect, useMemo, useState} from 'react';
 import Container from '@/app/components/Container';
-import Image from 'next/image';
 import {Badge} from '@/components/ui/badge';
-import {ChevronLeft, ChevronRight, ChevronDown} from 'lucide-react';
+import {ChevronDown} from 'lucide-react';
+import type {ClinicBookingRecord} from '@/lib/clinicRecords';
+import servicesData from '@/app/data/services.json';
+import providersData from '@/app/data/providers.json';
+import {toLocalDateKey} from '@/lib/salon';
 
 const SCHEDULE_HEIGHT = 1440;
 const MINUTES_IN_BUSINESS_DAY = 600;
+const services = servicesData as {id: string; name: string; category: string}[];
+const providers = providersData as {id: string; name: string}[];
 
 const getCurrentDate = () => {
   const currentDate = new Date();
@@ -17,28 +24,14 @@ const getCurrentDate = () => {
   return currentDate.toLocaleDateString('en-US', options);
 };
 
+function minutesSince9(time: string) {
+  const [hours, minutes] = time.split(':').map(Number);
+  return (hours - 9) * 60 + minutes;
+}
+
 function getMinutesSince9AM() {
   const now = new Date();
-  const currentHour = now.getHours();
-  const currentMinute = now.getMinutes();
-
-  const targetHour = 9; // 9 AM
-  const targetMinute = 0; // 0 minutes
-
-  let minutesSince9AM = 0;
-
-  if (currentHour > targetHour) {
-    // Calculate minutes after 9 AM
-    minutesSince9AM = (currentHour - targetHour) * 60 + currentMinute;
-  } else if (currentHour === targetHour) {
-    // It's 9 AM or later, but before 10 AM
-    minutesSince9AM = currentMinute;
-  } else {
-    // It's before 9 AM, so calculate minutes until tomorrow's 9 AM
-    minutesSince9AM = (24 - targetHour + currentHour) * 60 - currentMinute;
-  }
-
-  return minutesSince9AM;
+  return now.getHours() * 60 + now.getMinutes() - 9 * 60;
 }
 
 const renderDayProgressBar = () => {
@@ -75,6 +68,60 @@ const renderHourBlock = (hour: string) => {
 };
 
 const Schedule = () => {
+  const today = toLocalDateKey(new Date());
+  const [bookings, setBookings] = useState<ClinicBookingRecord[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch(`/api/bookings?date=${today}`)
+      .then(async (response) => {
+        const payload = await response.json();
+        if (!response.ok) {
+          throw new Error(payload.error || 'Unable to load schedule');
+        }
+        if (!cancelled) {
+          setBookings(payload.bookings || []);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setBookings([]);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [today]);
+
+  const columns = useMemo(() => {
+    const byProvider = new Map<string, ClinicBookingRecord[]>();
+    for (const booking of bookings) {
+      const providerId = booking.appointment?.providerId || 'unassigned';
+      const current = byProvider.get(providerId) || [];
+      current.push(booking);
+      byProvider.set(providerId, current);
+    }
+    const ids = Array.from(byProvider.keys());
+    if (!ids.length) {
+      return providers.slice(0, 2).map((provider) => ({
+        id: provider.id,
+        provider: provider.name,
+        sessions: [] as ClinicBookingRecord[],
+      }));
+    }
+    return ids.map((id) => ({
+      id,
+      provider: providers.find((provider) => provider.id === id)?.name || id,
+      sessions: byProvider.get(id) || [],
+    }));
+  }, [bookings]);
+
   return (
     <div>
       <div className="relative space-y-4">
@@ -82,11 +129,22 @@ const Schedule = () => {
           <h1 className="text-xl font-bold">Today&apos;s schedule</h1>
           <div className="font-bold text-accent">{getCurrentDate()}</div>
         </div>
+        {loading && (
+          <p className="text-sm text-subdued" data-testid="schedule-loading">
+            Loading booked treatments…
+          </p>
+        )}
+        {!loading && bookings.length === 0 && (
+          <p className="text-sm text-subdued" data-testid="schedule-empty">
+            No treatments booked for today. Paid or synced appointments appear
+            here.
+          </p>
+        )}
         <div className="relative left-0 z-30 flex w-full flex-row">
           {renderDayProgressBar()}
         </div>
         <div className="ml-10 flex flex-row">
-          {schedule.map(({id: id, provider}) => (
+          {columns.map(({id, provider}) => (
             <h2
               key={id}
               className="ml-8 flex flex-1 flex-row items-center space-x-1 text-lg font-bold last:hidden md:last:flex"
@@ -112,71 +170,70 @@ const Schedule = () => {
           <div
             className={`relative top-0 z-20 flex h-[1440px] w-full flex-row gap-4 pl-16`}
           >
-            {schedule.map(({id: id, sessions}) => {
-              return (
-                <div
-                  key={id}
-                  className="relative flex flex-grow flex-col last:hidden md:last:flex"
-                >
-                  {sessions.map(
-                    ({
-                      id: classId,
-                      name,
-                      startTime,
-                      endTime,
-                      startTimeMinutes,
-                      endTimeMinutes,
-                      client,
-                      skinType,
-                      profilePhoto,
-                    }) => {
-                      const badge = <Badge variant="blue">{skinType}</Badge>;
-                      return (
-                        <div
-                          key={classId}
-                          className="hover:z-100 absolute flex w-full cursor-pointer flex-col justify-between space-y-2 rounded-md border bg-offset bg-screen-background p-3 text-primary transition duration-150 hover:scale-[1.01] hover:bg-screen-foreground hover:shadow-md"
-                          style={{
-                            height: `${Math.round(
-                              (SCHEDULE_HEIGHT *
-                                (endTimeMinutes - startTimeMinutes)) /
-                                MINUTES_IN_BUSINESS_DAY
-                            )}px`,
-                            top: `${Math.round(
-                              (SCHEDULE_HEIGHT * startTimeMinutes) /
-                                MINUTES_IN_BUSINESS_DAY
-                            )}px`,
-                          }}
-                        >
-                          <div>
-                            <div className="text-md font-medium text-accent">
-                              {startTime} - {endTime}
-                            </div>
-                            <div className="text-md truncate font-medium">
-                              {name}
-                            </div>
-                          </div>
-                          <div className="text-md flex items-end gap-2">
-                            <div className="relative flex flex-1 items-center gap-2 font-medium">
-                              <Image
-                                className="relative h-7 w-7 rounded-full border border-gray-300"
-                                fill
-                                quality={50}
-                                sizes="100px"
-                                src={`/client_photos/${profilePhoto}.jpg`}
-                                alt={`Photo of ${name}`}
-                                priority
-                              />
-                              {client}
-                            </div>
-                            {badge}
-                          </div>
+            {columns.map(({id, sessions}) => (
+              <div
+                key={id}
+                className="relative flex flex-grow flex-col last:hidden md:last:flex"
+              >
+                {sessions.map((booking) => {
+                  const start = booking.appointment?.startTime || '09:00';
+                  const end = booking.appointment?.endTime || '10:00';
+                  const startTimeMinutes = minutesSince9(start);
+                  const endTimeMinutes = minutesSince9(end);
+                  const serviceName =
+                    services.find(
+                      (service) => service.id === booking.services[0]?.serviceId
+                    )?.name || 'Treatment';
+                  const clientName = booking.client
+                    ? `${booking.client.firstName} ${booking.client.lastName}`.trim()
+                    : 'Client';
+                  return (
+                    <div
+                      key={booking.id}
+                      data-testid="schedule-booking"
+                      className="hover:z-100 absolute flex w-full cursor-pointer flex-col justify-between space-y-2 rounded-md border bg-offset bg-screen-background p-3 text-primary transition duration-150 hover:scale-[1.01] hover:bg-screen-foreground hover:shadow-md"
+                      style={{
+                        height: `${Math.max(
+                          80,
+                          Math.round(
+                            (SCHEDULE_HEIGHT *
+                              (endTimeMinutes - startTimeMinutes)) /
+                              MINUTES_IN_BUSINESS_DAY
+                          )
+                        )}px`,
+                        top: `${Math.max(
+                          0,
+                          Math.round(
+                            (SCHEDULE_HEIGHT * startTimeMinutes) /
+                              MINUTES_IN_BUSINESS_DAY
+                          )
+                        )}px`,
+                      }}
+                    >
+                      <div>
+                        <div className="text-md font-medium text-accent">
+                          {start} - {end}
                         </div>
-                      );
-                    }
-                  )}
-                </div>
-              );
-            })}
+                        <div className="text-md truncate font-medium">
+                          {serviceName}
+                        </div>
+                      </div>
+                      <div className="text-md flex items-end gap-2">
+                        <div className="relative flex flex-1 items-center gap-2 font-medium">
+                          <div className="flex h-7 w-7 items-center justify-center rounded-full border border-gray-300 text-xs">
+                            {clientName.slice(0, 1)}
+                          </div>
+                          {clientName}
+                        </div>
+                        <Badge variant="blue">
+                          {booking.paymentStatus === 'paid' ? 'paid' : 'hold'}
+                        </Badge>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ))}
           </div>
         </div>
       </div>

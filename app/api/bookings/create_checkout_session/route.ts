@@ -11,6 +11,7 @@ import {
   type CheckoutCatalogService,
 } from '@/lib/bookingCheckout';
 import {authOptions} from '@/lib/auth';
+import {persistCheckoutBooking} from '@/lib/clinicRecords';
 import {stripe} from '@/lib/stripe';
 
 const catalog = servicesData as CheckoutCatalogService[];
@@ -48,17 +49,6 @@ export async function POST(req: NextRequest) {
       return jsonError('Client email is required', 400);
     }
 
-    const selections = Array.isArray(body?.services) ? body.services : [];
-    let built;
-    try {
-      built = buildCheckoutLineItems(selections, catalog, 'usd');
-    } catch (error) {
-      if (error instanceof BookingCheckoutValidationError) {
-        return jsonError(error.message, 400);
-      }
-      throw error;
-    }
-
     const [stripeAccount, taxSettings] = await Promise.all([
       stripe.accounts.retrieve(session.user.stripeAccountId),
       stripe.tax.settings.retrieve(
@@ -66,11 +56,17 @@ export async function POST(req: NextRequest) {
         {stripeAccount: session.user.stripeAccountId}
       ),
     ]);
-    if (stripeAccount.default_currency !== 'usd') {
-      return jsonError(
-        'This increment only charges connected accounts whose default currency is USD',
-        400
-      );
+    const chargeCurrency = stripeAccount.default_currency;
+
+    const selections = Array.isArray(body?.services) ? body.services : [];
+    let built;
+    try {
+      built = buildCheckoutLineItems(selections, catalog, chargeCurrency);
+    } catch (error) {
+      if (error instanceof BookingCheckoutValidationError) {
+        return jsonError(error.message, 400);
+      }
+      throw error;
     }
 
     const automaticTaxEnabled = taxSettings?.status === 'active';
@@ -113,11 +109,17 @@ export async function POST(req: NextRequest) {
           draftId,
           operatorAccountId: session.user.stripeAccountId,
           selections: encodeSelectionMetadata(selections),
+          chargeCurrency: built.chargeCurrency,
+          applicationFeeAmount: String(built.applicationFeeAmount),
         },
         mode: 'payment',
         success_url: returnUrl,
         cancel_url: returnUrl,
         automatic_tax: {enabled: automaticTaxEnabled},
+        payment_intent_data:
+          built.applicationFeeAmount > 0
+            ? {application_fee_amount: built.applicationFeeAmount}
+            : undefined,
       },
       {
         stripeAccount: session.user.stripeAccountId,
@@ -133,6 +135,23 @@ export async function POST(req: NextRequest) {
       sessionId: checkoutSession.id,
       draftId,
     });
+
+    try {
+      await persistCheckoutBooking({
+        operatorAccountId: session.user.stripeAccountId,
+        draftId,
+        checkoutSessionId: checkoutSession.id,
+        paymentStatus: checkoutSession.payment_status || 'unpaid',
+        amountTotal: checkoutSession.amount_total,
+        currency: checkoutSession.currency,
+        displayTotal: built.displayTotal,
+        services: selections,
+        appointment: body.appointment,
+        client: body.client,
+      });
+    } catch (error) {
+      console.error('Failed to persist booking draft', error);
+    }
 
     return NextResponse.json({
       checkoutUrl: checkoutSession.url,
