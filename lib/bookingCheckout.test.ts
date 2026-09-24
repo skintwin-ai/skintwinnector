@@ -132,6 +132,16 @@ describe('buildCheckoutLineItems', () => {
     ).toThrow(BookingCheckoutValidationError);
   });
 
+  it('rejects a missing charge currency', () => {
+    expect(() =>
+      buildCheckoutLineItems(
+        [{serviceId: 'srv-001', quantity: 1, addOns: []}],
+        catalog,
+        undefined
+      )
+    ).toThrow(BookingCheckoutValidationError);
+  });
+
   it('rejects an unknown service id', () => {
     expect(() =>
       buildCheckoutLineItems(

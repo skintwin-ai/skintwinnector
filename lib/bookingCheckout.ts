@@ -132,7 +132,7 @@ export function decodeSelectionMetadata(encoded: string): ServiceSelection[] {
 export function buildCheckoutLineItems(
   selections: ServiceSelection[],
   catalog: CheckoutCatalogService[],
-  chargeCurrency: string
+  chargeCurrency: string | undefined
 ): {
   lineItems: CheckoutLineItem[];
   displayTotal: number;
