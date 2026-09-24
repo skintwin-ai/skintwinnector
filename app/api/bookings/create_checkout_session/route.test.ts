@@ -182,6 +182,18 @@ describe('POST /api/bookings/create_checkout_session', () => {
     expect(sessionsCreate).not.toHaveBeenCalled();
   });
 
+  it('returns 400 when the connected account currency is missing', async () => {
+    accountsRetrieve.mockResolvedValue({});
+    const {POST} = await import('./route');
+    const response = await POST(postRequest(validBody));
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({
+      error: 'Unsupported charge currency: undefined',
+    });
+    expect(sessionsCreate).not.toHaveBeenCalled();
+    expect(persistCheckoutBooking).not.toHaveBeenCalled();
+  });
+
   it('uses a suffixed Idempotency-Key on retryAttempt 2', async () => {
     const {POST} = await import('./route');
     await POST(postRequest({...validBody, retryAttempt: 2}));
