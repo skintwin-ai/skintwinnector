@@ -1,36 +1,10 @@
 import {Stripe} from 'stripe';
+import {pickDemoCustomer} from '@/app/data/demoCustomers';
 import {authOptions} from '@/lib/auth';
+import {DEFAULT_BRAND_STATEMENT_DESCRIPTOR} from '@/lib/brand';
 import {stripe} from '@/lib/stripe';
 import {getServerSession} from 'next-auth';
 import {NextRequest} from 'next/server';
-
-const customers = [
-  {
-    email: 'hydrating_facial@stripe.com',
-    name: 'Odie',
-    description: 'Hydrating facial treatment',
-  },
-  {
-    email: 'chemical_peel@stripe.com',
-    name: 'Snoopy ',
-    description: 'Chemical peel session',
-  },
-  {
-    email: 'microdermabrasion@stripe.com',
-    name: 'Dug',
-    description: 'Microdermabrasion and exfoliation treatment',
-  },
-  {
-    email: 'acne_treatment@stripe.com',
-    name: 'Garfield',
-    description: 'Acne treatment and extraction',
-  },
-  {
-    email: 'skin_analysis@stripe.com',
-    name: 'Bugs Bunny',
-    description: 'Full skin analysis and consultation',
-  },
-];
 
 function getRandomInt(min: number, max: number) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -64,8 +38,7 @@ export async function POST(req: NextRequest) {
       ? parseFloat(params.amount) * 100
       : getRandomInt(4000, 12000);
 
-    const {description: nameAndDescription} =
-      customers[Math.floor(Math.random() * customers.length)];
+    const {description: nameAndDescription} = pickDemoCustomer();
 
     const checkoutSessionResponse = await stripe.checkout.sessions.create(
       {
@@ -84,7 +57,7 @@ export async function POST(req: NextRequest) {
         ],
         payment_intent_data: {
           description: nameAndDescription,
-          statement_descriptor: 'SKINTWIN',
+          statement_descriptor: DEFAULT_BRAND_STATEMENT_DESCRIPTOR,
         },
         mode: 'payment',
         success_url: redirectUrl,

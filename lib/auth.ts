@@ -465,7 +465,7 @@ export const authOptions: AuthOptions = {
             country: credentials?.country || 'US',
             business_type: businessType,
             business_profile: {
-              name: credentials?.businessName || 'SkinTwin Clinic',
+              name: credentials?.businessName || `${DEFAULT_BRAND_NAME} Clinic`,
             },
             email: email,
             controller: resolveControllerParams({

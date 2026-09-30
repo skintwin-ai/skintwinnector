@@ -10,8 +10,8 @@
         "endTime": "10:20am",
         "startTimeMinutes": 30,
         "endTimeMinutes": 80,
-        "client": "Udon",
-        "profilePhoto": "udon",
+        "client": "Liam Chen",
+        "profilePhoto": "liam-chen",
         "skinType": "dry"
       },
       {
@@ -21,8 +21,8 @@
         "endTime": "11:30am",
         "startTimeMinutes": 90,
         "endTimeMinutes": 150,
-        "client": "Kiba",
-        "profilePhoto": "kiba",
+        "client": "Amara Okafor",
+        "profilePhoto": "amara-okafor",
         "skinType": "oily"
       },
       {
@@ -32,8 +32,8 @@
         "endTime": "1:30pm",
         "startTimeMinutes": 210,
         "endTimeMinutes": 270,
-        "client": "Rowdy",
-        "profilePhoto": "rowdy",
+        "client": "Sofia Reyes",
+        "profilePhoto": "sofia-reyes",
         "skinType": "combination"
       },
       {
@@ -43,8 +43,8 @@
         "endTime": "2:50pm",
         "startTimeMinutes": 300,
         "endTimeMinutes": 350,
-        "client": "Apple",
-        "profilePhoto": "apple",
+        "client": "Ava Nguyen",
+        "profilePhoto": "ava-nguyen",
         "skinType": "sensitive"
       }
     ]
@@ -60,8 +60,8 @@
         "endTime": "10:45am",
         "startTimeMinutes": 60,
         "endTimeMinutes": 105,
-        "client": "Stephen",
-        "profilePhoto": "stephen",
+        "client": "Ethan Wright",
+        "profilePhoto": "ethan-wright",
         "skinType": "oily"
       },
       {
@@ -71,8 +71,8 @@
         "endTime": "11:50am",
         "startTimeMinutes": 120,
         "endTimeMinutes": 170,
-        "client": "Juney",
-        "profilePhoto": "juney",
+        "client": "June Park",
+        "profilePhoto": "june-park",
         "skinType": "dry"
       },
       {
@@ -82,8 +82,8 @@
         "endTime": "12:50pm",
         "startTimeMinutes": 180,
         "endTimeMinutes": 230,
-        "client": "Bisco",
-        "profilePhoto": "bisco",
+        "client": "Noah Patel",
+        "profilePhoto": "noah-patel",
         "skinType": "combination"
       },
       {
@@ -93,8 +93,8 @@
         "endTime": "2:30pm",
         "startTimeMinutes": 270,
         "endTimeMinutes": 330,
-        "client": "Jake",
-        "profilePhoto": "jake",
+        "client": "Jake Turner",
+        "profilePhoto": "jake-turner",
         "skinType": "sensitive"
       }
     ]
