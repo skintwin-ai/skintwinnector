@@ -35,11 +35,7 @@ async function dbConnect() {
     cached.conn = await cached.promise;
   } catch (e) {
     console.error('Could not connect to the database:', e);
-    const failure = Promise.reject(e);
-    // Attach a handler so the cached rejection is not reported as unhandled
-    // when the caller already caught the thrown error.
-    failure.catch(() => undefined);
-    cached.promise = failure;
+    cached.promise = null;
     cached.conn = null;
     throw e;
   }
