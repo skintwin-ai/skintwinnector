@@ -1,0 +1,6 @@
+{
+  "name": "skintwinnector",
+  "install": "bash /agent/repos/skintwinnector/.cursor/install.sh",
+  "start": "bash /agent/repos/skintwinnector/.cursor/start.sh",
+  "ports": [3000]
+}
