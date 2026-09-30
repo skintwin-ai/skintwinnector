@@ -11,6 +11,8 @@ type ProviderRecord = {
 
 const providers = providersData as ProviderRecord[];
 
+const SUITE_NOTIFY_TIMEOUT_MS = 5_000;
+
 function canRecordPaidTreatment(record: ClinicBookingRecord) {
   const currency = record.currency?.trim().toLowerCase();
   return (
@@ -68,6 +70,7 @@ export async function notifyPaidTreatment(record: ClinicBookingRecord) {
         authorization: `Bearer ${platformKey}`,
       },
       body: JSON.stringify(paidTreatmentBody(record)),
+      signal: AbortSignal.timeout(SUITE_NOTIFY_TIMEOUT_MS),
     });
     if (!response.ok) {
       console.error(
