@@ -54,6 +54,7 @@ describe('notifyPaidTreatment', () => {
     expect(init.method).toBe('POST');
     expect(init.headers.authorization).toBe('Bearer mesh-secret');
     expect(JSON.parse(init.body).json.checkoutSessionId).toBe('cs_test_1');
+    expect(init.signal).toBeInstanceOf(AbortSignal);
   });
 
   it('skips the call when the platform key is unset', async () => {
@@ -64,6 +65,13 @@ describe('notifyPaidTreatment', () => {
 
   it('resolves when fetch throws', async () => {
     fetchMock.mockRejectedValue(new Error('suite down'));
+    await expect(notifyPaidTreatment(paidRecord())).resolves.toBeUndefined();
+  });
+
+  it('resolves when the suite call aborts', async () => {
+    fetchMock.mockRejectedValue(
+      new DOMException('The operation was aborted', 'AbortError')
+    );
     await expect(notifyPaidTreatment(paidRecord())).resolves.toBeUndefined();
   });
 });

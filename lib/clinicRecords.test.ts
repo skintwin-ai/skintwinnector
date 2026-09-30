@@ -11,8 +11,19 @@ import {
   upsertClinicClient,
 } from './clinicRecords';
 
+const dbConnectMock = vi.hoisted(() =>
+  vi.fn().mockRejectedValue(new Error('no mongo in unit tests'))
+);
+const findOneAndUpdateMock = vi.hoisted(() => vi.fn());
+
 vi.mock('@/lib/dbConnect', () => ({
-  default: vi.fn().mockRejectedValue(new Error('no mongo in unit tests')),
+  default: dbConnectMock,
+}));
+
+vi.mock('@/app/models/booking', () => ({
+  default: {
+    findOneAndUpdate: findOneAndUpdateMock,
+  },
 }));
 
 const fetchMock = vi.fn();
@@ -23,6 +34,9 @@ describe('clinicRecords', () => {
     delete process.env.REGIMA_SUITE_URL;
     delete process.env.SKINTWIN_PLATFORM_KEY;
     fetchMock.mockReset();
+    dbConnectMock.mockReset();
+    dbConnectMock.mockRejectedValue(new Error('no mongo in unit tests'));
+    findOneAndUpdateMock.mockReset();
     vi.stubGlobal('fetch', fetchMock);
   });
 
@@ -198,7 +212,8 @@ describe('clinicRecords', () => {
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
-  it('does not post for unpaid, zero, other currencies, or a missing suite url', async () => {
+  it('does not post for unpaid, zero, other currencies, non-integer, or a missing suite url', async () => {
+    process.env.REGIMA_SUITE_URL = 'http://suite.test';
     process.env.SKINTWIN_PLATFORM_KEY = 'mesh-secret';
     await seedUnpaidBooking();
 
@@ -209,8 +224,8 @@ describe('clinicRecords', () => {
       amountTotal: 8500,
       currency: 'usd',
     });
+    expect(fetchMock).not.toHaveBeenCalled();
 
-    process.env.REGIMA_SUITE_URL = 'http://suite.test';
     await markBookingPayment({
       checkoutSessionId: 'cs_test_1',
       operatorAccountId: 'acct_123',
@@ -224,6 +239,13 @@ describe('clinicRecords', () => {
       paymentStatus: 'paid',
       amountTotal: 8500,
       currency: 'eur',
+    });
+    await markBookingPayment({
+      checkoutSessionId: 'cs_test_1',
+      operatorAccountId: 'acct_123',
+      paymentStatus: 'paid',
+      amountTotal: 85.5,
+      currency: 'usd',
     });
     delete process.env.REGIMA_SUITE_URL;
     await markBookingPayment({
@@ -284,5 +306,107 @@ describe('clinicRecords', () => {
     });
 
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('does not post for salon sync even when the payload includes a positive usd amount', async () => {
+    process.env.REGIMA_SUITE_URL = 'http://suite.test';
+    process.env.SKINTWIN_PLATFORM_KEY = 'mesh-secret';
+
+    await ingestPlatformRecord({
+      source: 'skintwin-salon',
+      action: 'sync_appointment',
+      data: {
+        externalId: 'apt_101',
+        date: '2026-09-22',
+        scheduledAt: '16:00',
+        duration: 60,
+        status: 'paid',
+        amountTotal: 8500,
+        currency: 'usd',
+        provider: {externalId: 'prv-001'},
+        services: [{externalId: 'srv-001'}],
+        client: {
+          profile: {
+            firstName: 'Folake',
+            lastName: 'Adeyemi',
+            email: 'folake2@example.com',
+            phone: '+2348000000001',
+          },
+        },
+      },
+    });
+
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('returns null without fetch when the checkout session is missing', async () => {
+    process.env.REGIMA_SUITE_URL = 'http://suite.test';
+    process.env.SKINTWIN_PLATFORM_KEY = 'mesh-secret';
+
+    await expect(
+      markBookingPayment({
+        checkoutSessionId: 'cs_missing',
+        operatorAccountId: 'acct_123',
+        paymentStatus: 'paid',
+        amountTotal: 8500,
+        currency: 'usd',
+      })
+    ).resolves.toBeNull();
+
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('posts to suite when mongo returns the paid booking row', async () => {
+    process.env.REGIMA_SUITE_URL = 'http://suite.test';
+    process.env.SKINTWIN_PLATFORM_KEY = 'mesh-secret';
+    fetchMock.mockResolvedValue({ok: true});
+    dbConnectMock.mockResolvedValue({});
+    findOneAndUpdateMock.mockReturnValue({
+      lean: async () => ({
+        id: 'bkg_mongo_1',
+        operatorAccountId: 'acct_123',
+        draftId: 'draft-mongo',
+        checkoutSessionId: 'cs_mongo_1',
+        paymentIntentId: null,
+        paymentStatus: 'paid',
+        amountTotal: 8500,
+        currency: 'usd',
+        displayTotal: 85,
+        source: 'skintwinnector',
+        services: [{serviceId: 'srv-001', quantity: 1, addOns: []}],
+        appointment: {
+          date: '2026-09-22',
+          startTime: '10:00',
+          endTime: '11:15',
+          providerId: 'prv-001',
+          totalDurationMinutes: 75,
+        },
+        client: {
+          firstName: 'Adaeze',
+          lastName: 'Obi',
+          email: 'adaeze.obi@example.com',
+          phone: '+2348012345678',
+          consentAccepted: true,
+          intakeCompleted: true,
+        },
+        createdAt: '2026-09-22T10:00:00.000Z',
+        updatedAt: '2026-09-22T10:05:00.000Z',
+      }),
+    });
+
+    const record = await markBookingPayment({
+      checkoutSessionId: 'cs_mongo_1',
+      operatorAccountId: 'acct_123',
+      paymentStatus: 'paid',
+      amountTotal: 8500,
+      currency: 'usd',
+    });
+
+    expect(record?.paymentStatus).toBe('paid');
+    expect(findOneAndUpdateMock).toHaveBeenCalled();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body);
+    expect(body.json.checkoutSessionId).toBe('cs_mongo_1');
+    expect(body.json.amountMinor).toBe(8500);
   });
 });
