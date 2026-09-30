@@ -4,6 +4,7 @@ import type {
   ServiceSelection,
 } from '@/app/contexts/booking/types';
 import {canonicalEmail} from '@/lib/platformIdentity';
+import {notifyPaidTreatment} from '@/lib/suiteSettlement';
 
 export type ClinicClientRecord = Client & {
   id: string;
@@ -319,13 +320,8 @@ export async function markBookingPayment(input: {
   amountTotal?: number | null;
   currency?: string | null;
 }): Promise<ClinicBookingRecord | null> {
-  const existing =
-    memory.bookings.get(bookingKey(input.checkoutSessionId)) ||
-    Array.from(memory.bookings.values()).find(
-      (booking) =>
-        booking.operatorAccountId === input.operatorAccountId &&
-        booking.checkoutSessionId === input.checkoutSessionId
-    );
+  const existing = memory.bookings.get(bookingKey(input.checkoutSessionId));
+  let record: ClinicBookingRecord | null = null;
   if (!existing) {
     if (await tryMongo()) {
       const {default: ClinicBooking} = await import('@/app/models/booking');
@@ -343,21 +339,25 @@ export async function markBookingPayment(input: {
         },
         {new: true}
       ).lean();
-      return (row as ClinicBookingRecord) || null;
+      record = (row as ClinicBookingRecord) || null;
     }
-    return null;
+  } else {
+    record = await persistCheckoutBooking({
+      ...existing,
+      paymentStatus: input.paymentStatus,
+      paymentIntentId: input.paymentIntentId,
+      amountTotal: input.amountTotal,
+      currency: input.currency,
+      services: existing.services,
+      appointment: existing.appointment,
+      client: existing.client,
+    });
   }
 
-  return persistCheckoutBooking({
-    ...existing,
-    paymentStatus: input.paymentStatus,
-    paymentIntentId: input.paymentIntentId,
-    amountTotal: input.amountTotal,
-    currency: input.currency,
-    services: existing.services,
-    appointment: existing.appointment,
-    client: existing.client,
-  });
+  if (record) {
+    await notifyPaidTreatment(record);
+  }
+  return record;
 }
 
 export async function listClinicBookings(input: {

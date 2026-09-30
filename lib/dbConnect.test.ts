@@ -54,4 +54,21 @@ describe('dbConnect', () => {
     ]);
     expect(mongoose.connect).toHaveBeenCalledTimes(1);
   });
+
+  it('does not leave an unhandled rejection when connect fails', async () => {
+    vi.mocked(mongoose.connect).mockRejectedValueOnce(new Error('down'));
+    const unhandled: unknown[] = [];
+    const onUnhandled = (reason: unknown) => {
+      unhandled.push(reason);
+    };
+    process.on('unhandledRejection', onUnhandled);
+    try {
+      const {default: dbConnect} = await import('./dbConnect');
+      await expect(dbConnect()).rejects.toThrow('down');
+      await new Promise((resolve) => setImmediate(resolve));
+      expect(unhandled).toEqual([]);
+    } finally {
+      process.off('unhandledRejection', onUnhandled);
+    }
+  });
 });
