@@ -320,13 +320,7 @@ export async function markBookingPayment(input: {
   amountTotal?: number | null;
   currency?: string | null;
 }): Promise<ClinicBookingRecord | null> {
-  const existing =
-    memory.bookings.get(bookingKey(input.checkoutSessionId)) ||
-    Array.from(memory.bookings.values()).find(
-      (booking) =>
-        booking.operatorAccountId === input.operatorAccountId &&
-        booking.checkoutSessionId === input.checkoutSessionId
-    );
+  const existing = memory.bookings.get(bookingKey(input.checkoutSessionId));
   let record: ClinicBookingRecord | null = null;
   if (!existing) {
     if (await tryMongo()) {

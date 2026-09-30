@@ -1,4 +1,6 @@
 import providersData from '@/app/data/providers.json';
+import {isSupportedChargeCurrency} from '@/lib/bookingCheckout';
+import {isPaidPaymentStatus} from '@/lib/bookingConfirmation';
 import type {ClinicBookingRecord} from '@/lib/clinicRecords';
 
 type ProviderRecord = {
@@ -9,18 +11,18 @@ type ProviderRecord = {
 
 const providers = providersData as ProviderRecord[];
 
-export function canRecordPaidTreatment(record: ClinicBookingRecord) {
+function canRecordPaidTreatment(record: ClinicBookingRecord) {
   const currency = record.currency?.trim().toLowerCase();
   return (
-    record.paymentStatus === 'paid' &&
+    isPaidPaymentStatus(record.paymentStatus) &&
     typeof record.amountTotal === 'number' &&
     Number.isInteger(record.amountTotal) &&
     record.amountTotal > 0 &&
-    (currency === 'usd' || currency === 'ngn')
+    isSupportedChargeCurrency(currency)
   );
 }
 
-export function paidTreatmentBody(record: ClinicBookingRecord) {
+function paidTreatmentBody(record: ClinicBookingRecord) {
   const provider = providers.find(
     (item) => item.id === record.appointment?.providerId
   );
