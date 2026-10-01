@@ -2,7 +2,6 @@
   {
     "id": "prv-001",
     "name": "Amara Johnson",
-    "email": "amara.johnson@clinic.skintwin.ai",
     "title": "Senior Esthetician",
     "type": "esthetician",
     "bio": "With over 8 years of experience in skincare, Amara specializes in customized facials and hydration therapies.",
@@ -22,7 +21,6 @@
   {
     "id": "prv-002",
     "name": "Dr. Temi Okonkwo",
-    "email": "temi.okonkwo@clinic.skintwin.ai",
     "title": "Skin Specialist",
     "type": "specialist",
     "bio": "Dr. Temi is a certified dermatology specialist with expertise in anti-aging treatments and skin consultations.",
@@ -42,7 +40,6 @@
   {
     "id": "prv-003",
     "name": "Chioma Adeyemi",
-    "email": "chioma.adeyemi@clinic.skintwin.ai",
     "title": "Esthetician",
     "type": "esthetician",
     "bio": "Chioma is passionate about helping clients achieve their best skin through personalized treatments and care.",
@@ -62,7 +59,6 @@
   {
     "id": "prv-004",
     "name": "Ngozi Eze",
-    "email": "ngozi.eze@clinic.skintwin.ai",
     "title": "Senior Specialist",
     "type": "specialist",
     "bio": "Ngozi brings 12 years of experience in advanced skincare treatments and bridal preparations.",

@@ -53,12 +53,34 @@ describe('notifyPaidTreatment', () => {
     expect(url).toBe('http://suite.test/api/trpc/platform.ingestPaidTreatment');
     expect(init.method).toBe('POST');
     expect(init.headers.authorization).toBe('Bearer mesh-secret');
-    expect(JSON.parse(init.body).json.checkoutSessionId).toBe('cs_test_1');
+    const body = JSON.parse(init.body).json;
+    expect(body.checkoutSessionId).toBe('cs_test_1');
+    expect(body.providerName).toBe('Amara Johnson');
+    expect(body.providerEmail).toBe('amara.johnson@clinic.skintwin.ai');
     expect(init.signal).toBeInstanceOf(AbortSignal);
+  });
+
+  it('posts Ngozi Eze clinic email for prv-004', async () => {
+    fetchMock.mockResolvedValue({ok: true});
+    const record = paidRecord();
+    record.appointment = {
+      ...record.appointment!,
+      providerId: 'prv-004',
+    };
+    await notifyPaidTreatment(record);
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body).json;
+    expect(body.providerName).toBe('Ngozi Eze');
+    expect(body.providerEmail).toBe('ngozi.eze@clinic.skintwin.ai');
   });
 
   it('skips the call when the platform key is unset', async () => {
     delete process.env.SKINTWIN_PLATFORM_KEY;
+    await notifyPaidTreatment(paidRecord());
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('skips the call when the suite URL is unset', async () => {
+    delete process.env.REGIMA_SUITE_URL;
     await notifyPaidTreatment(paidRecord());
     expect(fetchMock).not.toHaveBeenCalled();
   });
