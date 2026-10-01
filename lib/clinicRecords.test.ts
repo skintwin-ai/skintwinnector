@@ -23,6 +23,11 @@ vi.mock('@/lib/dbConnect', () => ({
 vi.mock('@/app/models/booking', () => ({
   default: {
     findOneAndUpdate: findOneAndUpdateMock,
+    find: () => ({
+      sort: () => ({
+        lean: async () => [],
+      }),
+    }),
   },
 }));
 
@@ -137,7 +142,7 @@ describe('clinicRecords', () => {
     expect(bookings[0].services[0].serviceId).toBe('srv-003');
   });
 
-  async function seedUnpaidBooking() {
+  async function seedUnpaidBooking(providerId = 'prv-001') {
     await persistCheckoutBooking({
       operatorAccountId: 'acct_123',
       draftId: 'draft-1',
@@ -150,7 +155,7 @@ describe('clinicRecords', () => {
         date: '2026-09-22',
         startTime: '10:00',
         endTime: '11:15',
-        providerId: 'prv-001',
+        providerId,
         totalDurationMinutes: 75,
       },
       client: {
@@ -191,8 +196,47 @@ describe('clinicRecords', () => {
       customerName: 'Adaeze Obi',
       source: 'skintwinnector',
     });
-    expect(body.json.providerEmail).toBeUndefined();
+    expect(body.json.providerEmail).toBe('amara.johnson@clinic.skintwin.ai');
     expect(JSON.stringify(body)).not.toContain('adaeze.obi@example.com');
+    expect(body.json).not.toHaveProperty('providerId');
+  });
+
+  it('posts Ngozi Eze email for prv-004', async () => {
+    process.env.REGIMA_SUITE_URL = 'http://suite.test';
+    process.env.SKINTWIN_PLATFORM_KEY = 'mesh-secret';
+    fetchMock.mockResolvedValue({ok: true});
+    await seedUnpaidBooking('prv-004');
+
+    await markBookingPayment({
+      checkoutSessionId: 'cs_test_1',
+      operatorAccountId: 'acct_123',
+      paymentStatus: 'paid',
+      amountTotal: 8500,
+      currency: 'usd',
+    });
+
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body);
+    expect(body.json.providerEmail).toBe('ngozi.eze@clinic.skintwin.ai');
+    expect(body.json.providerName).toBe('Ngozi Eze');
+  });
+
+  it('omits providerEmail when the provider is not in the catalog', async () => {
+    process.env.REGIMA_SUITE_URL = 'http://suite.test';
+    process.env.SKINTWIN_PLATFORM_KEY = 'mesh-secret';
+    fetchMock.mockResolvedValue({ok: true});
+    await seedUnpaidBooking('prv-missing');
+
+    await markBookingPayment({
+      checkoutSessionId: 'cs_test_1',
+      operatorAccountId: 'acct_123',
+      paymentStatus: 'paid',
+      amountTotal: 8500,
+      currency: 'usd',
+    });
+
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body);
+    expect(body.json.providerName).toBe('');
+    expect(body.json.providerEmail).toBeUndefined();
   });
 
   it('posts again when the same booking is marked paid a second time', async () => {
