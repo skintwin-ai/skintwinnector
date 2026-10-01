@@ -40,12 +40,12 @@ Clinics can already collect a treatment payment, and Suite already stores one or
 
 - R1. A new paid `usd` or `ngn` checkout for a provider in the roster below becomes one suite order for that person, that salon, and that store.
 
-| Connect id | Public id | Name | Email | Salon | Store | Certification |
-| --- | --- | --- | --- | --- | --- | --- |
-| prv-001 | t_08 | Amara Johnson | amara.johnson@clinic.skintwin.ai | Skin Atelier Sandton (`s_01`) | rzone-sa | Master |
-| prv-002 | t_09 | Dr. Temi Okonkwo | temi.okonkwo@clinic.skintwin.ai | Wandsworth Clinic (`s_06`) | regima-dr-h-wandsworth-town | Advanced |
-| prv-003 | t_10 | Chioma Adeyemi | chioma.adeyemi@clinic.skintwin.ai | House of Glow Rosebank (`s_02`) | rww-regimastore-co-za | Professional |
-| prv-004 | t_11 | Ngozi Eze | ngozi.eze@clinic.skintwin.ai | Atelier Umhlanga (`s_03`) | regima-za-dst | Foundation |
+| Connect id | Public id | Name             | Email                             | Salon                           | Store                       | Certification |
+| ---------- | --------- | ---------------- | --------------------------------- | ------------------------------- | --------------------------- | ------------- |
+| prv-001    | t_08      | Amara Johnson    | amara.johnson@clinic.skintwin.ai  | Skin Atelier Sandton (`s_01`)   | rzone-sa                    | Master        |
+| prv-002    | t_09      | Dr. Temi Okonkwo | temi.okonkwo@clinic.skintwin.ai   | Wandsworth Clinic (`s_06`)      | regima-dr-h-wandsworth-town | Advanced      |
+| prv-003    | t_10      | Chioma Adeyemi   | chioma.adeyemi@clinic.skintwin.ai | House of Glow Rosebank (`s_02`) | rww-regimastore-co-za       | Professional  |
+| prv-004    | t_11      | Ngozi Eze        | ngozi.eze@clinic.skintwin.ai      | Atelier Umhlanga (`s_03`)       | regima-za-dst               | Foundation    |
 
 - R2. The therapist, salon, and distributor shares on that order are the commission-policy row for that certification, and they add up to the charged total.
 - R3. A later paid signal for the same checkout session returns the existing order and does not change the therapist, the salon, or the shares.
@@ -218,12 +218,14 @@ Connect and Suite stay separate processes. The notice shape does not gain a fiel
 **Dependencies:** none
 
 **Files:**
+
 - `regima-suite` `shared/catalog.ts`
 - `regima-suite` `scripts/seed.ts`
 - `regima-suite` `server/db.ts`
 - `regima-suite` `server/db.memory.test.ts`
 
 **Approach:**
+
 1. Add `t_08` through `t_11` to the catalog with the R1 names, emails, salons, stores, and certifications. Set each new `commissionBps` per KTD3. Leave `t_01` through `t_07` unchanged.
 2. Teach the seed insert to write `email`. Include the four rows. Do not use that seed as the backfill.
 3. On startup with a database, ensure the four public ids per KTD2.
@@ -232,6 +234,7 @@ Connect and Suite stay separate processes. The notice shape does not gain a fiel
 **Patterns to follow:** `createTherapist` for the in-memory therapist shape. The existing unmatched Amara case in `server/db.memory.test.ts`, which expects a null therapist when the roster does not contain her.
 
 **Test scenarios:**
+
 - Covers AE1. After the in-memory lists hold the R1 rows, ingest 8500 minor `usd` units with `providerEmail` `amara.johnson@clinic.skintwin.ai` and `providerName` `Amara Johnson`. The order's therapist is Amara Johnson, the salon is Skin Atelier Sandton's id, the store is `rzone-sa`, and the shares are 38.25, 12.75, and 34.00.
 - Covers AE2. The same amount with `ngozi.eze@clinic.skintwin.ai` names Ngozi Eze, uses Atelier Umhlanga's id, and the shares are 21.25, 12.75, and 51.00.
 - Covers AE3. An order already stored for `cs_existing` with a null therapist is returned unchanged when a second ingest sends Amara Johnson's email.
@@ -253,16 +256,19 @@ Connect and Suite stay separate processes. The notice shape does not gain a fiel
 **Dependencies:** U1
 
 **Files:**
+
 - `skintwinnector` `app/data/providers.json`
 - `skintwinnector` `lib/clinicRecords.test.ts`
 
 **Approach:**
+
 1. Add the R1 email to each of the four providers. Do not add a provider id to the notice body.
 2. Update the `prv-001` paid-booking assertion so the posted body includes `amara.johnson@clinic.skintwin.ai` and still omits the client email.
 
 **Patterns to follow:** `lib/suiteSettlement.ts` already copies `provider.email` onto `providerEmail`. `lib/clinicRecords.test.ts` stubs fetch and reads `body.json`.
 
 **Test scenarios:**
+
 - A paid `usd` booking with `providerId` `prv-001` posts `providerName` `Amara Johnson` and `providerEmail` `amara.johnson@clinic.skintwin.ai`. The client email is absent.
 - The same booking for `prv-004` posts `ngozi.eze@clinic.skintwin.ai`.
 - An unpaid booking, a zero amount, and a missing suite URL still do not post.
@@ -279,12 +285,14 @@ Connect and Suite stay separate processes. The notice shape does not gain a fiel
 **Dependencies:** U1
 
 **Files:**
+
 - `regima-suite` `shared/orderNames.ts`
 - `regima-suite` `server/orderNames.test.ts`
 - `regima-suite` `client/src/lib/liveData.ts`
 - `regima-suite` `client/src/pages/Orders.tsx`
 
 **Approach:**
+
 1. Add a shared join that takes an order's therapist id and salon id plus the current therapist and salon lists, and returns the two names per KTD5.
 2. Call it from `useLiveData` while mapping orders. Put the names on the order view the ledger already uses.
 3. Render both names on the ledger row and in the inspector. Leave the share amounts, the split ribbon, Home, and the command palette unchanged.
@@ -293,6 +301,7 @@ Connect and Suite stay separate processes. The notice shape does not gain a fiel
 **Patterns to follow:** `mapOrder` in `client/src/lib/liveData.ts`. The therapist directory already resolves a salon name from `salonId`.
 
 **Test scenarios:**
+
 - Covers AE5. An order with therapist id 8 and salon id 1, against lists that contain Amara Johnson and Skin Atelier Sandton, returns those two names.
 - An order with null ids returns two empty strings.
 - An order whose ids are not in the lists returns two empty strings. The share amounts on the order are not inputs to the join.
