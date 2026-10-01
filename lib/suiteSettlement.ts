@@ -2,11 +2,11 @@ import providersData from '@/app/data/providers.json';
 import {isSupportedChargeCurrency} from '@/lib/bookingCheckout';
 import {isPaidPaymentStatus} from '@/lib/bookingConfirmation';
 import type {ClinicBookingRecord} from '@/lib/clinicRecords';
+import {providerClinicEmail} from '@/lib/providerRoster';
 
 type ProviderRecord = {
   id: string;
   name: string;
-  email?: string;
 };
 
 const providers = providersData as ProviderRecord[];
@@ -25,9 +25,9 @@ function canRecordPaidTreatment(record: ClinicBookingRecord) {
 }
 
 function paidTreatmentBody(record: ClinicBookingRecord) {
-  const provider = providers.find(
-    (item) => item.id === record.appointment?.providerId
-  );
+  const providerId = record.appointment?.providerId;
+  const provider = providers.find((item) => item.id === providerId);
+  const providerEmail = providerClinicEmail(providerId);
   const customerName = [record.client?.firstName, record.client?.lastName]
     .filter(Boolean)
     .join(' ')
@@ -48,8 +48,8 @@ function paidTreatmentBody(record: ClinicBookingRecord) {
     customerName,
     source: record.source,
   };
-  if (provider?.email) {
-    payload.providerEmail = provider.email;
+  if (providerEmail) {
+    payload.providerEmail = providerEmail;
   }
   return {json: payload};
 }
