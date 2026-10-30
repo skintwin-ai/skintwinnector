@@ -34,6 +34,12 @@ const SalonSchema = new Schema<Express.Request['user']>({
   primaryColor: String,
   companyName: String, // Custom company name to replace "SkinTwin"
   companyLogoUrl: String, // URL to custom company logo uploaded to Stripe
+  // Public storefront id. Omitted until claimed so the unique index stays sparse.
+  slug: {
+    type: String,
+    unique: true,
+    sparse: true,
+  },
 });
 
 // Check the email address to make sure it's unique (no existing salon with that address).
