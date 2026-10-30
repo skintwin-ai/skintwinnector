@@ -17,6 +17,8 @@ import React from 'react';
 import {useGetStripeAccount} from '@/app/hooks/useGetStripeAccount';
 import ThemeToggle from '@/app/components/skintwin/ThemeToggle';
 import ServiceCatalog from '@/app/components/skintwin/ServiceCatalog';
+import servicesData from '@/app/data/services.json';
+import type {Service} from '@/app/contexts/booking/types';
 
 function Card({
   icon,
@@ -181,7 +183,11 @@ export default function LandingPage() {
               facials, consults, and packages from the same clinic workspace.
             </p>
           </div>
-          <ServiceCatalog mode="browse" limit={6} />
+          <ServiceCatalog
+            services={servicesData as Service[]}
+            mode="browse"
+            limit={6}
+          />
         </div>
       </div>
 

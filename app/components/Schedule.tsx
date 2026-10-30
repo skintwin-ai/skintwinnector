@@ -5,13 +5,11 @@ import Container from '@/app/components/Container';
 import {Badge} from '@/components/ui/badge';
 import {ChevronDown} from 'lucide-react';
 import type {ClinicBookingRecord} from '@/lib/clinicRecords';
-import servicesData from '@/app/data/services.json';
 import providersData from '@/app/data/providers.json';
 import {toLocalDateKey} from '@/lib/salon';
 
 const SCHEDULE_HEIGHT = 1440;
 const MINUTES_IN_BUSINESS_DAY = 600;
-const services = servicesData as {id: string; name: string; category: string}[];
 const providers = providersData as {id: string; name: string}[];
 
 const getCurrentDate = () => {
@@ -67,7 +65,11 @@ const renderHourBlock = (hour: string) => {
   );
 };
 
-const Schedule = () => {
+const Schedule = ({
+  services,
+}: {
+  services: {id: string; name: string; category: string}[];
+}) => {
   const today = toLocalDateKey(new Date());
   const [bookings, setBookings] = useState<ClinicBookingRecord[]>([]);
   const [loading, setLoading] = useState(true);

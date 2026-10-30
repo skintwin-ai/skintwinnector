@@ -10,7 +10,6 @@ import type {
   Provider,
   Service,
 } from '@/app/contexts/booking/types';
-import servicesData from '@/app/data/services.json';
 import providersData from '@/app/data/providers.json';
 import {
   formatAppointmentDate,
@@ -19,10 +18,9 @@ import {
 } from '@/lib/salon';
 import type {ClinicBookingRecord} from '@/lib/clinicRecords';
 
-const services = servicesData as Service[];
 const providers = providersData as Provider[];
 
-const BookingScheduler = () => {
+const BookingScheduler = ({services}: {services: Service[]}) => {
   const router = useRouter();
   const booking = useBooking();
   const {clearAppointment, setAppointment} = booking;
@@ -44,7 +42,7 @@ const BookingScheduler = () => {
         service: services.find((item) => item.id === selection.serviceId),
       }))
       .filter((item) => item.service);
-  }, [booking.services]);
+  }, [booking.services, services]);
 
   const totalDuration = booking.getTotalDuration(services);
 

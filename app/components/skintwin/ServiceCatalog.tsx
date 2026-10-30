@@ -9,7 +9,6 @@ import {Tabs, TabsList, TabsTrigger} from '@/components/ui/tabs';
 import Container from '@/app/components/Container';
 import {useBooking} from '@/app/contexts/booking/BookingContext';
 import type {Service} from '@/app/contexts/booking/types';
-import servicesData from '@/app/data/services.json';
 import {
   formatCurrency,
   formatDuration,
@@ -17,15 +16,15 @@ import {
   SERVICE_CATEGORIES,
 } from '@/lib/salon';
 
-const services = servicesData as Service[];
-
 type ServiceCatalogProps = {
+  services: Service[];
   mode?: 'book' | 'browse';
   limit?: number;
   hideAddOns?: boolean;
 };
 
 const ServiceCatalog = ({
+  services,
   mode = 'book',
   limit,
   hideAddOns = true,
@@ -41,7 +40,7 @@ const ServiceCatalog = ({
           : services
         : services.filter((service) => service.category === category);
     return typeof limit === 'number' ? byCategory.slice(0, limit) : byCategory;
-  }, [category, hideAddOns, limit]);
+  }, [category, hideAddOns, limit, services]);
 
   return (
     <div className="space-y-4">

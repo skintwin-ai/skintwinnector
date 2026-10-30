@@ -7,7 +7,6 @@ import {Button} from '@/components/ui/button';
 import Container from '@/app/components/Container';
 import {useBooking} from '@/app/contexts/booking/BookingContext';
 import type {Provider, Service} from '@/app/contexts/booking/types';
-import servicesData from '@/app/data/services.json';
 import providersData from '@/app/data/providers.json';
 import {
   attachCatalogServices,
@@ -26,7 +25,6 @@ import {
 import {startBookingCheckout} from '@/lib/startBookingCheckout';
 import {formatCurrency, formatDuration} from '@/lib/salon';
 
-const services = servicesData as Service[];
 const providers = providersData as Provider[];
 
 export function PaymentChecking() {
@@ -41,7 +39,7 @@ export function PaymentChecking() {
   );
 }
 
-const BookingConfirmation = () => {
+const BookingConfirmation = ({services}: {services: Service[]}) => {
   const booking = useBooking();
   const router = useRouter();
   const searchParams = useSearchParams();

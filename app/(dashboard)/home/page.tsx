@@ -16,9 +16,11 @@ import {useGetStripeAccount} from '@/app/hooks/useGetStripeAccount';
 import Link from 'next/link';
 import {Button} from '@/components/ui/button';
 import ServiceCatalog from '@/app/components/skintwin/ServiceCatalog';
+import {useTreatmentCatalog} from '@/app/hooks/useTreatmentCatalog';
 import {isUiPreview} from '@/lib/uiPreview';
 
 export default function Dashboard() {
+  const {services} = useTreatmentCatalog();
   const {data: session} = useSession();
   if (!session && !isUiPreview) {
     redirect('/');
@@ -61,7 +63,7 @@ export default function Dashboard() {
       </div>
       <div className="flex flex-col items-start gap-2 md:gap-5 xl:flex-row">
         <Container className="flex w-full flex-1 flex-col p-5">
-          <Schedule />
+          <Schedule services={services} />
         </Container>
         <div className="-order-1 flex w-full min-w-[370px] flex-col gap-2 md:gap-4 xl:order-2 xl:w-[30%]">
           <div className="flex flex-grow flex-col gap-2 md:gap-4 md:max-xl:flex-row">
@@ -96,7 +98,7 @@ export default function Dashboard() {
             View catalog
           </Link>
         </div>
-        <ServiceCatalog mode="book" limit={3} />
+        <ServiceCatalog services={services} mode="book" limit={3} />
       </div>
     </>
   );

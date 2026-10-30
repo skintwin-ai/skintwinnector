@@ -6,16 +6,15 @@ import {Button} from '@/components/ui/button';
 import Container from '@/app/components/Container';
 import {useBooking} from '@/app/contexts/booking/BookingContext';
 import type {Service} from '@/app/contexts/booking/types';
-import servicesData from '@/app/data/services.json';
 import {formatCurrency, formatDuration} from '@/lib/salon';
 
-const services = servicesData as Service[];
-
 const BookingBasket = ({
+  services,
   continueHref = '/bookings',
   continueLabel = 'Schedule appointment',
   continueDisabled = false,
 }: {
+  services: Service[];
   continueHref?: string;
   continueLabel?: string;
   continueDisabled?: boolean;
