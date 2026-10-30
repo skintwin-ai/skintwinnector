@@ -14,7 +14,9 @@ const PROVIDER_TYPES = new Set(['esthetician', 'specialist']);
 
 function readPatch(
   body: Record<string, unknown>
-): {ok: true; patch: Partial<Service> & {published?: boolean}} | {ok: false; error: string} {
+):
+  | {ok: true; patch: Partial<Service> & {published?: boolean}}
+  | {ok: false; error: string} {
   const patch: Partial<Service> & {published?: boolean} = {};
   if (typeof body.name === 'string') {
     const name = body.name.trim();
@@ -39,10 +41,14 @@ function readPatch(
     patch.usdChargeCents = body.usdChargeCents;
   }
   if (body.durationMinutes !== undefined) {
-    if (!Number.isInteger(body.durationMinutes) || body.durationMinutes <= 0) {
+    const durationMinutes = body.durationMinutes;
+    if (
+      !Number.isInteger(durationMinutes) ||
+      (durationMinutes as number) <= 0
+    ) {
       return {ok: false, error: 'durationMinutes must be a positive integer'};
     }
-    patch.durationMinutes = body.durationMinutes;
+    patch.durationMinutes = durationMinutes as number;
   }
   if (body.providerTypes !== undefined) {
     if (

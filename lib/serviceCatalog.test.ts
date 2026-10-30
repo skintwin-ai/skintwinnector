@@ -51,9 +51,7 @@ describe('serviceCatalog', () => {
   });
 
   it('resolves one unpublished row as the only treatment service and an empty storefront', async () => {
-    await saveProvisionedService(
-      storedService('acct_a', 'srv-local', false)
-    );
+    await saveProvisionedService(storedService('acct_a', 'srv-local', false));
 
     const treatment = await resolveServices('acct_a', 'treatment');
     const storefront = await resolveServices('acct_a', 'storefront');

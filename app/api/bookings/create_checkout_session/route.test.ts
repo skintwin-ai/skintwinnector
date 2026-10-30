@@ -280,7 +280,9 @@ describe('POST /api/bookings/create_checkout_session', () => {
     );
 
     sessionsCreate.mockClear();
-    const shared = await POST(postRequest({...validBody, draftId: 'draft-shared'}));
+    const shared = await POST(
+      postRequest({...validBody, draftId: 'draft-shared'})
+    );
     expect(shared.status).toBe(200);
     expect(
       sessionsCreate.mock.calls[0][0].line_items[0].price_data.unit_amount
@@ -301,10 +303,7 @@ describe('POST /api/bookings/create_checkout_session', () => {
   });
 
   it('does not import the shared services file', () => {
-    const source = readFileSync(
-      new URL('./route.ts', import.meta.url),
-      'utf8'
-    );
+    const source = readFileSync(new URL('./route.ts', import.meta.url), 'utf8');
     expect(source).not.toContain('services.json');
   });
 });

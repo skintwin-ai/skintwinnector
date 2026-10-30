@@ -120,12 +120,14 @@ describe('GET/POST /api/services', () => {
     const ids = treatment.map((service) => service.id);
     expect(ids).toEqual(expect.arrayContaining(sharedIds));
     expect(ids).toContain(body.service.id);
-    expect(treatment.filter((service) => sharedIds.includes(service.id)).every(
-      (service) => service.published === false
-    )).toBe(true);
     expect(
-      await resolveServices('acct_other', 'treatment')
-    ).toHaveLength(sharedIds.length);
+      treatment
+        .filter((service) => sharedIds.includes(service.id))
+        .every((service) => service.published === false)
+    ).toBe(true);
+    expect(await resolveServices('acct_other', 'treatment')).toHaveLength(
+      sharedIds.length
+    );
   });
 
   it('does not copy the shared file again on a later create', async () => {
@@ -138,7 +140,9 @@ describe('GET/POST /api/services', () => {
     const treatment = await resolveServices('acct_123', 'treatment');
 
     expect(treatment).toHaveLength(sharedIds.length + 2);
-    expect(treatment.map((service) => service.id)).toContain(created.service.id);
+    expect(treatment.map((service) => service.id)).toContain(
+      created.service.id
+    );
   });
 
   it('returns 400 and stores nothing when usdChargeCents or providerTypes is missing', async () => {

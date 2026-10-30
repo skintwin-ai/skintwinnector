@@ -1,6 +1,9 @@
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {NextRequest} from 'next/server';
-import {resetServiceCatalogForTests, resolveServices} from '@/lib/serviceCatalog';
+import {
+  resetServiceCatalogForTests,
+  resolveServices,
+} from '@/lib/serviceCatalog';
 
 const getServerSession = vi.fn();
 const dbConnect = vi.hoisted(() =>
@@ -72,9 +75,12 @@ describe('PATCH /api/services/[serviceId]', () => {
     });
 
     const {PATCH} = await import('./route');
-    const response = await PATCH(patch('srv-owned', {published: true, name: 'Stolen'}), {
-      params: {serviceId: 'srv-owned'},
-    });
+    const response = await PATCH(
+      patch('srv-owned', {published: true, name: 'Stolen'}),
+      {
+        params: {serviceId: 'srv-owned'},
+      }
+    );
 
     expect(response.status).toBe(404);
     getServerSession.mockResolvedValue({
@@ -94,9 +100,11 @@ describe('PATCH /api/services/[serviceId]', () => {
       params: {serviceId: 'srv-owned'},
     });
     expect(published.status).toBe(200);
-    expect((await resolveServices('acct_owner', 'storefront')).map((service) => service.id)).toEqual([
-      'srv-owned',
-    ]);
+    expect(
+      (await resolveServices('acct_owner', 'storefront')).map(
+        (service) => service.id
+      )
+    ).toEqual(['srv-owned']);
 
     const unpublished = await PATCH(patch('srv-owned', {published: false}), {
       params: {serviceId: 'srv-owned'},

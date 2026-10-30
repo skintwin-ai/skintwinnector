@@ -25,10 +25,7 @@ const ProvisionedServiceSchema = new mongoose.Schema(
   {collection: 'provisioned_services'}
 );
 
-ProvisionedServiceSchema.index(
-  {operatorAccountId: 1, id: 1},
-  {unique: true}
-);
+ProvisionedServiceSchema.index({operatorAccountId: 1, id: 1}, {unique: true});
 
 const ProvisionedService =
   mongoose.models[provisionedServiceSchemaName] ||

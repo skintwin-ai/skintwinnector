@@ -394,11 +394,11 @@ sequenceDiagram
 
 ## Verification Contract
 
-| Check | Command | Applies to |
-| --- | --- | --- |
-| Unit and route tests | `yarn test` | U1–U7 |
-| Lint and types | `yarn validate-change` | U1–U7 |
-| Production build | `yarn build` | U4, U6, U7 pages |
+| Check                | Command                | Applies to       |
+| -------------------- | ---------------------- | ---------------- |
+| Unit and route tests | `yarn test`            | U1–U7            |
+| Lint and types       | `yarn validate-change` | U1–U7            |
+| Production build     | `yarn build`           | U4, U6, U7 pages |
 
 CI on pull requests to `master` runs those three in `.github/workflows/test.yml` on Node 22. Catalog and clinic tests keep mocking `dbConnect` to reject. Slug route tests mock `Salon.save` because that model has no memory store. No new environment variable is required.
 

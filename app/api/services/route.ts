@@ -1,10 +1,7 @@
 import {NextRequest, NextResponse} from 'next/server';
 import type {Service} from '@/app/contexts/booking/types';
 import {requireOperatorAccount} from '@/lib/clinicAuth';
-import {
-  createProvisionedService,
-  resolveServices,
-} from '@/lib/serviceCatalog';
+import {createProvisionedService, resolveServices} from '@/lib/serviceCatalog';
 
 function jsonError(error: string, status: number) {
   return NextResponse.json({error}, {status});
@@ -28,7 +25,8 @@ function readCreateBody(
   ) {
     return {ok: false, error: 'usdChargeCents is required'};
   }
-  if (!Number.isInteger(body.durationMinutes) || body.durationMinutes <= 0) {
+  const durationMinutes = body.durationMinutes;
+  if (!Number.isInteger(durationMinutes) || (durationMinutes as number) <= 0) {
     return {ok: false, error: 'durationMinutes must be a positive integer'};
   }
   if (
@@ -52,11 +50,10 @@ function readCreateBody(
       id,
       name,
       category: typeof body.category === 'string' ? body.category : 'custom',
-      description:
-        typeof body.description === 'string' ? body.description : '',
-      durationMinutes: body.durationMinutes,
+      description: typeof body.description === 'string' ? body.description : '',
+      durationMinutes: durationMinutes as number,
       bufferMinutes: Number.isInteger(body.bufferMinutes)
-        ? body.bufferMinutes
+        ? (body.bufferMinutes as number)
         : 0,
       price: body.price,
       usdChargeCents: body.usdChargeCents,
