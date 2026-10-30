@@ -39,7 +39,7 @@ export function PayLocalCheckout({sessionId}: {sessionId: string}) {
         data-testid="local-checkout-pay"
         className="w-full rounded-md bg-accent px-4 py-2 font-medium text-white"
       >
-        {pending ? 'Settling…' : 'Pay and confirm booking'}
+        {pending ? 'Settling…' : 'Pay'}
       </button>
       {error && <p className="text-sm text-red-500">{error}</p>}
     </div>

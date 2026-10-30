@@ -1,6 +1,11 @@
 import {type NextRequest} from 'next/server';
 import {NextResponse} from 'next/server';
 import {markBookingPayment} from '@/lib/clinicRecords';
+import {
+  findMarketplaceOrderBySession,
+  sessionMerchandiseTotal,
+  settleMarketplacePayment,
+} from '@/lib/marketplaceOrders';
 import {stripe} from '@/lib/stripe';
 
 function jsonError(error: string, status: number) {
@@ -104,13 +109,44 @@ export async function POST(req: NextRequest) {
     case 'account.updated':
       break;
     case 'checkout.session.completed':
-    case 'checkout.session.async_payment_succeeded':
+    case 'checkout.session.async_payment_succeeded': {
+      const sessionId = event.data.object.id;
+      if (event.account && sessionId) {
+        const order = await findMarketplaceOrderBySession(
+          event.account,
+          sessionId
+        );
+        if (order) {
+          try {
+            const retrieved = await stripe.checkout.sessions.retrieve(
+              sessionId,
+              {},
+              {stripeAccount: event.account}
+            );
+            const settled = await settleMarketplacePayment({
+              order,
+              paymentStatus: retrieved.payment_status,
+              currency: retrieved.currency,
+              merchandiseTotal: sessionMerchandiseTotal(retrieved),
+              amountTotal: retrieved.amount_total,
+            });
+            if (!settled) {
+              return jsonError('Unable to update the marketplace order', 500);
+            }
+          } catch (error) {
+            console.error('Marketplace checkout webhook failed', error);
+            return jsonError('Unable to update the marketplace order', 500);
+          }
+          break;
+        }
+      }
       try {
         await logBookingCheckoutEvent(event);
       } catch (error) {
         console.error('Booking checkout webhook retrieve failed', error);
       }
       break;
+    }
     default:
       console.log('Unhandled event type', event.type);
       break;

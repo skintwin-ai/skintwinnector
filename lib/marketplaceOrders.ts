@@ -23,6 +23,11 @@ export type MarketplaceOrderRecord = {
 };
 
 const orders = new Map<string, MarketplaceOrderRecord>();
+let saveCount = 0;
+
+export function marketplaceOrderSaveCount() {
+  return saveCount;
+}
 
 function nowIso() {
   return new Date().toISOString();
@@ -30,6 +35,7 @@ function nowIso() {
 
 export function resetMarketplaceOrdersForTests() {
   orders.clear();
+  saveCount = 0;
 }
 
 async function tryMongo() {
@@ -65,6 +71,7 @@ export async function saveMarketplaceOrder(
     updatedAt: nowIso(),
   };
   remember(record);
+  saveCount += 1;
   if (await tryMongo()) {
     try {
       const {default: MarketplaceOrder} = await import(
@@ -125,6 +132,67 @@ export async function findUnpaidOrderByKey(idempotencyKey: string) {
         order.checkoutUrl
     ) || null
   );
+}
+
+export async function settleMarketplacePayment(input: {
+  order: MarketplaceOrderRecord;
+  paymentStatus: string | null | undefined;
+  currency: string | null | undefined;
+  merchandiseTotal: number | null;
+  amountTotal: number | null;
+}): Promise<MarketplaceOrderRecord | null> {
+  if (input.order.paymentStatus === 'paid') {
+    return input.order;
+  }
+  const currency = (input.currency || '').toLowerCase();
+  const merchandiseMatches =
+    input.merchandiseTotal === input.order.merchandiseTotal &&
+    currency === input.order.currency.toLowerCase();
+  if (input.paymentStatus !== 'paid') {
+    return input.order;
+  }
+  if (!merchandiseMatches) {
+    return saveMarketplaceOrder({
+      ...input.order,
+      paymentStatus: 'mismatch',
+      mismatch: 'Merchandise or currency did not match the snapshot',
+      amountTotal: input.amountTotal,
+    });
+  }
+  return saveMarketplaceOrder({
+    ...input.order,
+    paymentStatus: 'paid',
+    amountTotal: input.amountTotal,
+    mismatch: null,
+  });
+}
+
+export function sessionMerchandiseTotal(session: {
+  amount_subtotal?: number | null;
+  amount_total?: number | null;
+}) {
+  return typeof session.amount_subtotal === 'number'
+    ? session.amount_subtotal
+    : typeof session.amount_total === 'number'
+      ? session.amount_total
+      : null;
+}
+
+export async function loadMarketplaceReceipt(
+  orderId: string,
+  buyerAccountId: string
+) {
+  const order = await findMarketplaceOrderForBuyer(orderId, buyerAccountId);
+  if (!order?.checkoutSessionId) {
+    return null;
+  }
+  const {stripe} = await import('@/lib/stripe');
+  const checkout = await stripe.checkout.sessions.retrieve(
+    order.checkoutSessionId,
+    {},
+    {stripeAccount: order.sellerAccountId}
+  );
+  return {order, checkout};
 }
 
 export async function findMarketplaceOrderForBuyer(
