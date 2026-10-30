@@ -1,6 +1,5 @@
 import {getServerSession} from 'next-auth';
 import {NextRequest, NextResponse} from 'next/server';
-import servicesData from '@/app/data/services.json';
 import {
   BookingCheckoutValidationError,
   bodyContainsClientPricing,
@@ -8,13 +7,11 @@ import {
   buildCheckoutLineItems,
   encodeSelectionMetadata,
   isCheckoutSessionId,
-  type CheckoutCatalogService,
 } from '@/lib/bookingCheckout';
 import {authOptions} from '@/lib/auth';
 import {persistCheckoutBooking} from '@/lib/clinicRecords';
+import {resolveServices} from '@/lib/serviceCatalog';
 import {stripe} from '@/lib/stripe';
-
-const catalog = servicesData as CheckoutCatalogService[];
 
 function jsonError(error: string, status: number) {
   return NextResponse.json({error}, {status});
@@ -59,6 +56,10 @@ export async function POST(req: NextRequest) {
     const chargeCurrency = stripeAccount.default_currency;
 
     const selections = Array.isArray(body?.services) ? body.services : [];
+    const catalog = await resolveServices(
+      session.user.stripeAccountId,
+      'treatment'
+    );
     let built;
     try {
       built = buildCheckoutLineItems(selections, catalog, chargeCurrency);

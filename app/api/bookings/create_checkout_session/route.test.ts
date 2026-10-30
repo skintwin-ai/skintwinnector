@@ -1,5 +1,11 @@
+import {readFileSync} from 'node:fs';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {NextRequest} from 'next/server';
+import {applicationFeeAmount} from '@/lib/bookingCheckout';
+import {
+  createProvisionedService,
+  resetServiceCatalogForTests,
+} from '@/lib/serviceCatalog';
 
 const getServerSession = vi.fn();
 const accountsRetrieve = vi.fn();
@@ -19,6 +25,10 @@ const persistCheckoutBooking = vi.fn().mockResolvedValue({});
 vi.mock('@/lib/clinicRecords', () => ({
   persistCheckoutBooking: (...args: unknown[]) =>
     persistCheckoutBooking(...args),
+}));
+
+vi.mock('@/lib/dbConnect', () => ({
+  default: vi.fn().mockRejectedValue(new Error('no mongo in unit tests')),
 }));
 
 vi.mock('@/lib/stripe', () => ({
@@ -66,6 +76,7 @@ function postRequest(body: unknown) {
 describe('POST /api/bookings/create_checkout_session', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    resetServiceCatalogForTests();
     process.env.NEXTAUTH_URL = 'http://localhost:3000';
     getServerSession.mockResolvedValue({
       user: {stripeAccountId: 'acct_123'},
@@ -221,5 +232,79 @@ describe('POST /api/bookings/create_checkout_session', () => {
       'booking-checkout:draft-1',
       'booking-checkout:draft-1',
     ]);
+  });
+
+  it('prices a copied shared service and a provisioned service, and rejects an unknown id', async () => {
+    await createProvisionedService({
+      operatorAccountId: 'acct_123',
+      id: 'srv-custom',
+      name: 'Custom Facial',
+      category: 'facials',
+      description: 'Provisioned',
+      durationMinutes: 40,
+      bufferMinutes: 0,
+      price: 50,
+      usdChargeCents: 3200,
+      currency: 'NGN',
+      providerTypes: ['esthetician'],
+      requiresConsultation: false,
+      addOns: [],
+      image: 'custom.png',
+    });
+
+    const {POST} = await import('./route');
+    const custom = await POST(
+      postRequest({
+        ...validBody,
+        draftId: 'draft-custom',
+        services: [{serviceId: 'srv-custom', quantity: 1, addOns: []}],
+      })
+    );
+    expect(custom.status).toBe(200);
+    expect(sessionsCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        payment_intent_data: {
+          application_fee_amount: applicationFeeAmount(3200),
+        },
+        line_items: [
+          expect.objectContaining({
+            quantity: 1,
+            price_data: expect.objectContaining({
+              currency: 'usd',
+              unit_amount: 3200,
+            }),
+          }),
+        ],
+      }),
+      expect.objectContaining({stripeAccount: 'acct_123'})
+    );
+
+    sessionsCreate.mockClear();
+    const shared = await POST(postRequest({...validBody, draftId: 'draft-shared'}));
+    expect(shared.status).toBe(200);
+    expect(
+      sessionsCreate.mock.calls[0][0].line_items[0].price_data.unit_amount
+    ).toBe(8500);
+    expect(
+      sessionsCreate.mock.calls[0][0].payment_intent_data.application_fee_amount
+    ).toBe(850);
+
+    const unknown = await POST(
+      postRequest({
+        ...validBody,
+        draftId: 'draft-unknown',
+        services: [{serviceId: 'srv-missing', quantity: 1, addOns: []}],
+      })
+    );
+    expect(unknown.status).toBe(400);
+    expect(sessionsCreate).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not import the shared services file', () => {
+    const source = readFileSync(
+      new URL('./route.ts', import.meta.url),
+      'utf8'
+    );
+    expect(source).not.toContain('services.json');
   });
 });
