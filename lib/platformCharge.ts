@@ -87,7 +87,5 @@ export function platformCharge(input: {
     currency,
     input.catalog
   );
-  return catalogAmount != null
-    ? {amountMinor: catalogAmount, currency}
-    : null;
+  return catalogAmount != null ? {amountMinor: catalogAmount, currency} : null;
 }

@@ -323,64 +323,230 @@ describe('clinicRecords', () => {
     expect(bookings[0].paymentStatus).toBe('paid');
   });
 
-  it('does not post when a salon sync marks a booking paid without an amount', async () => {
+  function salonAppointment(overrides: Record<string, unknown> = {}) {
+    return {
+      date: '2026-09-22',
+      scheduledAt: '16:00',
+      duration: 60,
+      status: 'paid',
+      provider: {externalId: 'prv-001'},
+      services: [{externalId: 'srv-001'}],
+      client: {
+        profile: {
+          firstName: 'Folake',
+          lastName: 'Adeyemi',
+          email: 'folake@example.com',
+          phone: '+2348000000000',
+        },
+      },
+      ...overrides,
+    };
+  }
+
+  it('posts catalog usd cents for a paid salon srv-001 sync', async () => {
     process.env.REGIMA_SUITE_URL = 'http://suite.test';
     process.env.SKINTWIN_PLATFORM_KEY = 'mesh-secret';
+    fetchMock.mockResolvedValue({ok: true});
 
     await ingestPlatformRecord({
       source: 'skintwin-salon',
       action: 'sync_appointment',
-      data: {
-        externalId: 'apt_100',
-        date: '2026-09-22',
-        scheduledAt: '15:00',
-        duration: 60,
-        status: 'paid',
-        provider: {externalId: 'prv-001'},
-        services: [{externalId: 'srv-001'}],
-        client: {
-          profile: {
-            firstName: 'Folake',
-            lastName: 'Adeyemi',
-            email: 'folake@example.com',
-            phone: '+2348000000000',
-          },
-        },
-      },
+      data: salonAppointment({
+        externalId: 'apt_200',
+        currency: 'usd',
+      }),
     });
 
-    expect(fetchMock).not.toHaveBeenCalled();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body).json;
+    expect(body).toMatchObject({
+      checkoutSessionId: 'cs_platform_apt_200',
+      amountMinor: 8500,
+      currency: 'usd',
+      providerName: 'Amara Johnson',
+      providerEmail: 'amara.johnson@clinic.skintwin.ai',
+    });
+    expect(JSON.stringify(body)).not.toContain('folake@example.com');
+
+    fetchMock.mockClear();
+    await ingestPlatformRecord({
+      source: 'skintwin-salon',
+      action: 'sync_appointment',
+      data: salonAppointment({
+        externalId: 'apt_200',
+        currency: 'usd',
+      }),
+    });
+    expect(
+      JSON.parse(fetchMock.mock.calls[0][1].body).json.checkoutSessionId
+    ).toBe('cs_platform_apt_200');
   });
 
-  it('does not post for salon sync even when the payload includes a positive usd amount', async () => {
+  it('posts catalog ngn kobo when a paid salon sync omits currency', async () => {
+    process.env.REGIMA_SUITE_URL = 'http://suite.test';
+    process.env.SKINTWIN_PLATFORM_KEY = 'mesh-secret';
+    fetchMock.mockResolvedValue({ok: true});
+
+    await ingestPlatformRecord({
+      source: 'skintwin-salon',
+      action: 'sync_appointment',
+      data: salonAppointment({externalId: 'apt_201'}),
+    });
+
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body).json;
+    expect(body.amountMinor).toBe(850000);
+    expect(body.currency).toBe('ngn');
+  });
+
+  it('scales a payload ngn amount and prefers a usd payload over catalog', async () => {
+    process.env.REGIMA_SUITE_URL = 'http://suite.test';
+    process.env.SKINTWIN_PLATFORM_KEY = 'mesh-secret';
+    fetchMock.mockResolvedValue({ok: true});
+
+    await ingestPlatformRecord({
+      source: 'skintwin-salon',
+      action: 'sync_appointment',
+      data: salonAppointment({
+        externalId: 'apt_202',
+        amountTotal: 8500,
+        currency: 'ngn',
+      }),
+    });
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body).json.amountMinor).toBe(
+      850000
+    );
+
+    fetchMock.mockClear();
+    await ingestPlatformRecord({
+      source: 'skintwin-salon',
+      action: 'sync_appointment',
+      data: salonAppointment({
+        externalId: 'apt_203',
+        amountTotal: 1,
+        currency: 'usd',
+      }),
+    });
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body).json.amountMinor).toBe(
+      1
+    );
+  });
+
+  it('does not post an unpriced or draft salon sync', async () => {
     process.env.REGIMA_SUITE_URL = 'http://suite.test';
     process.env.SKINTWIN_PLATFORM_KEY = 'mesh-secret';
 
     await ingestPlatformRecord({
       source: 'skintwin-salon',
       action: 'sync_appointment',
-      data: {
-        externalId: 'apt_101',
-        date: '2026-09-22',
-        scheduledAt: '16:00',
-        duration: 60,
-        status: 'paid',
-        amountTotal: 8500,
-        currency: 'usd',
-        provider: {externalId: 'prv-001'},
-        services: [{externalId: 'srv-001'}],
-        client: {
-          profile: {
-            firstName: 'Folake',
-            lastName: 'Adeyemi',
-            email: 'folake2@example.com',
-            phone: '+2348000000001',
-          },
-        },
-      },
+      data: salonAppointment({
+        externalId: 'apt_204',
+        services: [],
+      }),
+    });
+    await ingestPlatformRecord({
+      source: 'skintwin-salon',
+      action: 'sync_appointment',
+      data: salonAppointment({
+        externalId: 'apt_205',
+        services: [{externalId: 'srv-missing'}],
+      }),
+    });
+    await ingestPlatformRecord({
+      source: 'skintwin-salon',
+      action: 'sync_appointment',
+      data: salonAppointment({
+        externalId: 'apt_206',
+        status: 'draft',
+      }),
     });
 
     expect(fetchMock).not.toHaveBeenCalled();
+    const bookings = await listClinicBookings({
+      operatorAccountId: 'platform:skintwin-salon',
+    });
+    expect(bookings.map((booking) => booking.draftId).sort()).toEqual([
+      'apt_204',
+      'apt_205',
+      'apt_206',
+    ]);
+  });
+
+  it('posts an empty provider name when the provider is unknown', async () => {
+    process.env.REGIMA_SUITE_URL = 'http://suite.test';
+    process.env.SKINTWIN_PLATFORM_KEY = 'mesh-secret';
+    fetchMock.mockResolvedValue({ok: true});
+
+    await ingestPlatformRecord({
+      source: 'skintwin-salon',
+      action: 'sync_appointment',
+      data: salonAppointment({
+        externalId: 'apt_207',
+        currency: 'usd',
+        provider: {externalId: 'prv-unknown'},
+      }),
+    });
+
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body).json;
+    expect(body.providerName).toBe('');
+    expect(body.providerEmail).toBeUndefined();
+  });
+
+  it('keeps a paid salon booking paid when suite is down and on later completed sync', async () => {
+    delete process.env.REGIMA_SUITE_URL;
+    process.env.SKINTWIN_PLATFORM_KEY = 'mesh-secret';
+
+    await ingestPlatformRecord({
+      source: 'skintwin-salon',
+      action: 'sync_appointment',
+      data: salonAppointment({
+        externalId: 'apt_208',
+        currency: 'usd',
+      }),
+    });
+
+    let bookings = await listClinicBookings({
+      operatorAccountId: 'platform:skintwin-salon',
+    });
+    expect(bookings[0].paymentStatus).toBe('paid');
+    expect(fetchMock).not.toHaveBeenCalled();
+
+    process.env.REGIMA_SUITE_URL = 'http://suite.test';
+    fetchMock.mockRejectedValue(new Error('suite down'));
+
+    await ingestPlatformRecord({
+      source: 'skintwin-salon',
+      action: 'sync_appointment',
+      data: salonAppointment({
+        externalId: 'apt_208',
+        currency: 'usd',
+      }),
+    });
+
+    bookings = await listClinicBookings({
+      operatorAccountId: 'platform:skintwin-salon',
+    });
+    expect(bookings[0].paymentStatus).toBe('paid');
+
+    fetchMock.mockReset();
+    fetchMock.mockResolvedValue({ok: true});
+    await ingestPlatformRecord({
+      source: 'skintwin-salon',
+      action: 'sync_appointment',
+      data: salonAppointment({
+        externalId: 'apt_208',
+        currency: 'usd',
+        status: 'completed',
+      }),
+    });
+
+    bookings = await listClinicBookings({
+      operatorAccountId: 'platform:skintwin-salon',
+    });
+    expect(bookings[0].paymentStatus).toBe('paid');
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(
+      JSON.parse(fetchMock.mock.calls[0][1].body).json.checkoutSessionId
+    ).toBe('cs_platform_apt_208');
   });
 
   it('returns null without fetch when the checkout session is missing', async () => {

@@ -1,10 +1,15 @@
+import servicesData from '@/app/data/services.json';
 import type {
   Appointment,
   Client,
   ServiceSelection,
 } from '@/app/contexts/booking/types';
+import type {CheckoutCatalogService} from '@/lib/bookingCheckout';
 import {canonicalEmail} from '@/lib/platformIdentity';
+import {platformCharge} from '@/lib/platformCharge';
 import {notifyPaidTreatment} from '@/lib/suiteSettlement';
+
+const catalog = servicesData as CheckoutCatalogService[];
 
 export type ClinicClientRecord = Client & {
   id: string;
@@ -518,6 +523,17 @@ function paidLikeStatus(status: string) {
   return status === 'paid' || status === 'confirmed_paid';
 }
 
+function platformMoneyFields(raw: unknown) {
+  if (!raw || typeof raw !== 'object') {
+    return {amountTotal: undefined, currency: undefined};
+  }
+  const value = raw as Record<string, unknown>;
+  return {
+    amountTotal: value.amountTotal ?? value.totalAmount,
+    currency: value.currency,
+  };
+}
+
 export async function ingestPlatformRecord(input: {
   source: string;
   action: 'sync_appointment' | 'sync_client' | 'sync_certification';
@@ -545,24 +561,41 @@ export async function ingestPlatformRecord(input: {
     };
   }
   if (input.action === 'sync_appointment') {
-    const appointment = appointmentFromPlatform(
-      input.appointment || input.data
-    );
+    const payload = input.appointment || input.data;
+    const appointment = appointmentFromPlatform(payload);
     if (!appointment) {
       throw new Error('Appointment id is required');
     }
+    const checkoutSessionId = `cs_platform_${appointment.id}`;
+    const existing = memory.bookings.get(bookingKey(checkoutSessionId));
+    const paidLike = paidLikeStatus(appointment.status);
+    const paymentStatus = paidLike
+      ? 'paid'
+      : existing?.paymentStatus === 'paid'
+        ? 'paid'
+        : appointment.status || 'unpaid';
+    const money = platformMoneyFields(payload);
+    const charge = platformCharge({
+      amountTotal: money.amountTotal,
+      selections: appointment.services,
+      currency: money.currency,
+      source: input.source,
+      catalog,
+    });
+    const persistCharge = paidLike && charge;
     const record = await persistCheckoutBooking({
       operatorAccountId,
       draftId: appointment.id,
-      checkoutSessionId: `cs_platform_${appointment.id}`,
-      paymentStatus: paidLikeStatus(appointment.status)
-        ? 'paid'
-        : appointment.status || 'unpaid',
+      checkoutSessionId,
+      paymentStatus,
+      amountTotal: persistCharge ? charge.amountMinor : undefined,
+      currency: persistCharge ? charge.currency : undefined,
       source: input.source,
       services: appointment.services,
       appointment: appointment.appointment,
       client: appointment.client || client,
     });
+    await notifyPaidTreatment(record);
     return {
       ok: true,
       source: input.source,
