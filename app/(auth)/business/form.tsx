@@ -23,6 +23,11 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {Input} from '@/components/ui/input';
+import {
+  isSameOriginContinue,
+  resolvePlatformContinue,
+  sameOriginPath,
+} from '@/lib/platformContinue';
 import {Collapsible} from '@/components/ui/collapsible';
 import {ChevronUp, ChevronDown, ArrowRight, Loader2} from 'lucide-react';
 import {Link} from '@/components/ui/link';
@@ -327,6 +332,18 @@ export default function BusinessDetailsForm({email}: {email: string}) {
         redirect: false,
       });
 
+      const next = new URLSearchParams(window.location.search).get('next');
+      if (next) {
+        const target = resolvePlatformContinue(
+          next,
+          window.location.origin,
+          '/onboarding'
+        );
+        if (isSameOriginContinue(target, window.location.origin)) {
+          router.push(sameOriginPath(target));
+          return;
+        }
+      }
       router.push('/onboarding');
     } catch (error: any) {
       console.error('An error occured', error);

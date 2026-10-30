@@ -1,6 +1,9 @@
 import Link from 'next/link';
+import {getServerSession} from 'next-auth';
+import {authOptions} from '@/lib/auth';
 import {stripe} from '@/lib/stripe';
 import {formatStorefrontAmount, salonBySlug} from '@/lib/serviceCatalog';
+import {StorefrontBuy} from './buy-form';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,6 +21,7 @@ export default async function StorefrontPage({
 }: {
   params: {slug: string};
 }) {
+  const session = await getServerSession(authOptions);
   const salon = await salonBySlug(params.slug);
   if (!salon) {
     return (
@@ -54,9 +58,17 @@ export default async function StorefrontPage({
                 <h2 className="text-lg font-semibold">{service.name}</h2>
                 <p className="text-sm text-subdued">{service.description}</p>
               </div>
-              <p className="font-semibold">
-                {formatStorefrontAmount(service, currency)}
-              </p>
+              <div className="flex flex-col items-end gap-3">
+                <p className="font-semibold">
+                  {formatStorefrontAmount(service, currency)}
+                </p>
+                <StorefrontBuy
+                  slug={salon.slug}
+                  serviceId={service.id}
+                  signedIn={Boolean(session?.user)}
+                  hasAccount={Boolean(session?.user?.stripeAccountId)}
+                />
+              </div>
             </li>
           ))}
         </ul>

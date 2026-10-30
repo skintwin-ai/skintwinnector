@@ -295,7 +295,7 @@ export async function listIndexSalons(): Promise<StorefrontSalon[]> {
   }
 
   const listed: StorefrontSalon[] = [];
-  for (const [operatorAccountId, slug] of accountSlugs.entries()) {
+  for (const [operatorAccountId, slug] of Array.from(accountSlugs.entries())) {
     const services = await resolveServices(operatorAccountId, 'storefront');
     if (services.length === 0) {
       continue;
