@@ -51,7 +51,7 @@ describe('POST /api/storefront', () => {
 
     expect(first.status).toBe(200);
     expect(await first.json()).toEqual({slug: 'ada'});
-    expect(slugForAccount('acct_ada')).toBe('ada');
+    expect(await slugForAccount('acct_ada')).toBe('ada');
     expect(save).toHaveBeenCalled();
 
     getServerSession.mockResolvedValue({
@@ -60,7 +60,7 @@ describe('POST /api/storefront', () => {
     const second = await POST(postSlug('Ada'));
 
     expect(second.status).toBeGreaterThanOrEqual(400);
-    expect(slugForAccount('acct_ada')).toBe('ada');
-    expect(slugForAccount('acct_other')).toBeNull();
+    expect(await slugForAccount('acct_ada')).toBe('ada');
+    expect(await slugForAccount('acct_other')).toBeNull();
   });
 });

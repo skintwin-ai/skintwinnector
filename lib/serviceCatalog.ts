@@ -46,8 +46,23 @@ export function resetServiceCatalogForTests() {
   accountSlugs.clear();
 }
 
-export function slugForAccount(operatorAccountId: string) {
-  return accountSlugs.get(operatorAccountId) || null;
+export async function slugForAccount(operatorAccountId: string) {
+  const cached = accountSlugs.get(operatorAccountId);
+  if (cached) {
+    return cached;
+  }
+  if (!(await tryMongo())) {
+    return null;
+  }
+  const {default: Salon} = await import('@/app/models/salon');
+  const salon = await Salon.findOne({stripeAccountId: operatorAccountId})
+    .select('slug stripeAccountId')
+    .lean();
+  if (!salon?.slug || String(salon.stripeAccountId) !== operatorAccountId) {
+    return null;
+  }
+  const claimed = claimSalonSlug(operatorAccountId, String(salon.slug));
+  return claimed.ok ? claimed.slug : null;
 }
 
 export function claimSalonSlug(

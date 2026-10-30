@@ -15,7 +15,9 @@ export async function GET() {
   if (!operatorAccountId) {
     return jsonError('Unauthorized or no Stripe account found', 401);
   }
-  return NextResponse.json({slug: slugForAccount(operatorAccountId)});
+  return NextResponse.json({
+    slug: await slugForAccount(operatorAccountId),
+  });
 }
 
 export async function POST(req: NextRequest) {

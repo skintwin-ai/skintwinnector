@@ -26,7 +26,7 @@ export default async function MarketplaceReceiptPage({
   }
 
   const {order, checkout} = loaded;
-  const slug = slugForAccount(order.sellerAccountId);
+  const slug = await slugForAccount(order.sellerAccountId);
   const waiting =
     checkout.payment_status === 'paid' &&
     order.paymentStatus === 'unpaid' &&
