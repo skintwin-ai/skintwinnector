@@ -15,6 +15,7 @@ const dbConnectMock = vi.hoisted(() =>
   vi.fn().mockRejectedValue(new Error('no mongo in unit tests'))
 );
 const findOneAndUpdateMock = vi.hoisted(() => vi.fn());
+const findOneMock = vi.hoisted(() => vi.fn());
 
 vi.mock('@/lib/dbConnect', () => ({
   default: dbConnectMock,
@@ -23,6 +24,7 @@ vi.mock('@/lib/dbConnect', () => ({
 vi.mock('@/app/models/booking', () => ({
   default: {
     findOneAndUpdate: findOneAndUpdateMock,
+    findOne: findOneMock,
     find: () => ({
       sort: () => ({
         lean: async () => [],
@@ -42,6 +44,8 @@ describe('clinicRecords', () => {
     dbConnectMock.mockReset();
     dbConnectMock.mockRejectedValue(new Error('no mongo in unit tests'));
     findOneAndUpdateMock.mockReset();
+    findOneMock.mockReset();
+    findOneMock.mockReturnValue({lean: async () => null});
     vi.stubGlobal('fetch', fetchMock);
   });
 
@@ -547,6 +551,61 @@ describe('clinicRecords', () => {
     expect(
       JSON.parse(fetchMock.mock.calls[0][1].body).json.checkoutSessionId
     ).toBe('cs_platform_apt_208');
+  });
+
+  it('keeps a mongo-backed paid booking paid on later completed sync', async () => {
+    process.env.REGIMA_SUITE_URL = 'http://suite.test';
+    process.env.SKINTWIN_PLATFORM_KEY = 'mesh-secret';
+    fetchMock.mockResolvedValue({ok: true});
+    dbConnectMock.mockResolvedValue({});
+    findOneMock.mockReturnValue({
+      lean: async () => ({
+        id: 'bkg_apt_209',
+        operatorAccountId: 'platform:skintwin-salon',
+        draftId: 'apt_209',
+        checkoutSessionId: 'cs_platform_apt_209',
+        paymentIntentId: null,
+        paymentStatus: 'paid',
+        amountTotal: 8500,
+        currency: 'usd',
+        displayTotal: null,
+        source: 'skintwin-salon',
+        services: [{serviceId: 'srv-001', quantity: 1, addOns: []}],
+        appointment: {
+          date: '2026-09-22',
+          startTime: '16:00',
+          endTime: '17:00',
+          providerId: 'prv-001',
+          totalDurationMinutes: 60,
+        },
+        client: null,
+        createdAt: '2026-09-22T16:00:00.000Z',
+        updatedAt: '2026-09-22T16:05:00.000Z',
+      }),
+    });
+
+    await ingestPlatformRecord({
+      source: 'skintwin-salon',
+      action: 'sync_appointment',
+      data: salonAppointment({
+        externalId: 'apt_209',
+        currency: 'usd',
+        status: 'completed',
+        client: undefined,
+      }),
+    });
+
+    dbConnectMock.mockRejectedValue(new Error('no mongo in unit tests'));
+    const bookings = await listClinicBookings({
+      operatorAccountId: 'platform:skintwin-salon',
+    });
+    expect(bookings[0].paymentStatus).toBe('paid');
+    expect(bookings[0].amountTotal).toBe(8500);
+    expect(bookings[0].currency).toBe('usd');
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(
+      JSON.parse(fetchMock.mock.calls[0][1].body).json.checkoutSessionId
+    ).toBe('cs_platform_apt_209');
   });
 
   it('returns null without fetch when the checkout session is missing', async () => {

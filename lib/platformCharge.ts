@@ -40,7 +40,6 @@ function catalogAmountMinor(
 ): number | null {
   const catalogById = new Map(catalog.map((item) => [item.id, item]));
   let total = 0;
-  let priced = false;
 
   for (const selection of selections) {
     if (typeof selection?.serviceId !== 'string' || !selection.serviceId) {
@@ -57,10 +56,9 @@ function catalogAmountMinor(
       continue;
     }
     total += unitAmountForCurrency(item, currency) * quantity;
-    priced = true;
   }
 
-  return priced && Number.isInteger(total) && total > 0 ? total : null;
+  return Number.isInteger(total) && total > 0 ? total : null;
 }
 
 export function platformCharge(input: {

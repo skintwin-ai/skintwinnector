@@ -184,6 +184,24 @@ async function tryMongo() {
   }
 }
 
+async function existingClinicBooking(checkoutSessionId: string) {
+  const cached = memory.bookings.get(bookingKey(checkoutSessionId));
+  if (cached) {
+    return cached;
+  }
+  if (!(await tryMongo())) {
+    return undefined;
+  }
+  const {default: ClinicBooking} = await import('@/app/models/booking');
+  const row = await ClinicBooking.findOne({checkoutSessionId}).lean();
+  if (!row) {
+    return undefined;
+  }
+  const record = row as ClinicBookingRecord;
+  memory.bookings.set(bookingKey(checkoutSessionId), record);
+  return record;
+}
+
 export async function upsertClinicClient(input: {
   operatorAccountId: string;
   client: Client;
@@ -567,11 +585,10 @@ export async function ingestPlatformRecord(input: {
       throw new Error('Appointment id is required');
     }
     const checkoutSessionId = `cs_platform_${appointment.id}`;
-    const existing = memory.bookings.get(bookingKey(checkoutSessionId));
+    const existing = await existingClinicBooking(checkoutSessionId);
     const paidLike = paidLikeStatus(appointment.status);
-    const paymentStatus = paidLike
-      ? 'paid'
-      : existing?.paymentStatus === 'paid'
+    const paymentStatus =
+      paidLike || existing?.paymentStatus === 'paid'
         ? 'paid'
         : appointment.status || 'unpaid';
     const money = platformMoneyFields(payload);
