@@ -1,10 +1,10 @@
 import {
   applicationFeeAmount,
-  isSupportedChargeCurrency,
   unitAmountForCurrency,
   type ChargeCurrency,
 } from '@/lib/bookingCheckout';
 import type {Service} from '@/app/contexts/booking/types';
+import type {MarketplaceOrderLine} from '@/lib/marketplaceOrders';
 
 const FORBIDDEN_KEYS = new Set([
   'unit_amount',
@@ -48,19 +48,12 @@ export function sellerCanCharge(account: {
   );
 }
 
-export type PricedMarketplaceLine = {
-  serviceId: string;
-  name: string;
-  quantity: number;
-  unitAmount: number;
-};
-
 export function priceMarketplaceSelections(
   selections: unknown,
   catalog: Array<Service & {published?: boolean}>,
   currency: ChargeCurrency
 ):
-  | {ok: true; lines: PricedMarketplaceLine[]; merchandiseTotal: number}
+  | {ok: true; lines: MarketplaceOrderLine[]; merchandiseTotal: number}
   | {ok: false; error: string} {
   if (!Array.isArray(selections) || selections.length === 0) {
     return {ok: false, error: 'Select at least one service'};
@@ -73,7 +66,7 @@ export function priceMarketplaceSelections(
       .filter((service) => service.published)
       .map((service) => [service.id, service])
   );
-  const lines: PricedMarketplaceLine[] = [];
+  const lines: MarketplaceOrderLine[] = [];
   for (const selection of selections) {
     if (!selection || typeof selection !== 'object') {
       return {ok: false, error: 'Invalid service selection'};
@@ -114,7 +107,7 @@ export function priceMarketplaceSelections(
 export function marketplaceIdempotencyKey(
   buyerAccountId: string,
   sellerAccountId: string,
-  lines: PricedMarketplaceLine[]
+  lines: MarketplaceOrderLine[]
 ) {
   const canonical = [...lines]
     .map((line) => `${line.serviceId}:${line.quantity}:${line.unitAmount}`)
@@ -125,13 +118,4 @@ export function marketplaceIdempotencyKey(
 
 export function marketplaceFee(merchandiseTotal: number) {
   return applicationFeeAmount(merchandiseTotal);
-}
-
-export function assertSupportedSellerCurrency(
-  currency: string | null | undefined
-) {
-  if (!isSupportedChargeCurrency(currency)) {
-    return `Unsupported charge currency: ${currency}`;
-  }
-  return null;
 }

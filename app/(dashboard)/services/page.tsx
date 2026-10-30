@@ -12,6 +12,7 @@ import {
   useTreatmentCatalog,
   type TreatmentService,
 } from '@/app/hooks/useTreatmentCatalog';
+import {PROVIDER_TYPES, PROVIDER_TYPE_LABELS} from '@/lib/providerTypes';
 
 function isStoredService(service: TreatmentService) {
   return typeof service.published === 'boolean';
@@ -227,22 +228,16 @@ export default function ServicesPage() {
               required
             />
             <div className="flex items-center gap-3 text-sm">
-              <label className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={providerTypes.includes('esthetician')}
-                  onChange={() => toggleProvider('esthetician')}
-                />
-                Esthetician
-              </label>
-              <label className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={providerTypes.includes('specialist')}
-                  onChange={() => toggleProvider('specialist')}
-                />
-                Specialist
-              </label>
+              {PROVIDER_TYPES.map((type) => (
+                <label key={type} className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={providerTypes.includes(type)}
+                    onChange={() => toggleProvider(type)}
+                  />
+                  {PROVIDER_TYPE_LABELS[type]}
+                </label>
+              ))}
             </div>
             <Button
               className="btn-cobalt sm:col-span-2"

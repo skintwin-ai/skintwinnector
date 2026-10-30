@@ -155,17 +155,21 @@ export async function saveProvisionedService(
   memory.services.set(key, record);
 
   if (await tryMongo()) {
-    const {default: ProvisionedService} = await import(
-      '@/app/models/provisionedService'
-    );
-    await ProvisionedService.findOneAndUpdate(
-      {operatorAccountId: input.operatorAccountId, id: input.id},
-      record,
-      {upsert: true, new: true, setDefaultsOnInsert: true}
-    );
+    await upsertProvisionedRecord(record);
   }
 
   return record;
+}
+
+async function upsertProvisionedRecord(record: ProvisionedServiceRecord) {
+  const {default: ProvisionedService} = await import(
+    '@/app/models/provisionedService'
+  );
+  return ProvisionedService.findOneAndUpdate(
+    {operatorAccountId: record.operatorAccountId, id: record.id},
+    record,
+    {upsert: true, new: true, setDefaultsOnInsert: true}
+  );
 }
 
 async function mirrorRecord(
@@ -175,14 +179,7 @@ async function mirrorRecord(
     return 'skipped';
   }
   try {
-    const {default: ProvisionedService} = await import(
-      '@/app/models/provisionedService'
-    );
-    const updated = await ProvisionedService.findOneAndUpdate(
-      {operatorAccountId: record.operatorAccountId, id: record.id},
-      record,
-      {upsert: true, new: true, setDefaultsOnInsert: true}
-    );
+    const updated = await upsertProvisionedRecord(record);
     return updated ? 'saved' : 'failed';
   } catch (error) {
     console.warn('Service catalog mirror failed', error);
@@ -297,14 +294,20 @@ export async function salonBySlug(
 }
 
 export async function listIndexSalons(): Promise<StorefrontSalon[]> {
-  if (accountSlugs.size === 0 && (await tryMongo())) {
+  if (await tryMongo()) {
     const {default: Salon} = await import('@/app/models/salon');
     const salons = await Salon.find({
       slug: {$exists: true, $ne: null},
-    }).lean();
+    })
+      .select('slug stripeAccountId')
+      .lean();
     for (const salon of salons || []) {
-      if (salon.slug && salon.stripeAccountId) {
-        claimSalonSlug(String(salon.stripeAccountId), String(salon.slug));
+      if (!salon.slug || !salon.stripeAccountId) {
+        continue;
+      }
+      const slug = String(salon.slug);
+      if (!slugOwners.has(slug)) {
+        claimSalonSlug(String(salon.stripeAccountId), slug);
       }
     }
   }

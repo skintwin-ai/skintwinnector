@@ -16,6 +16,7 @@ import {
   formatDuration,
   toLocalDateKey,
 } from '@/lib/salon';
+import {attachCatalogServices} from '@/lib/bookingConfirmation';
 import type {ClinicBookingRecord} from '@/lib/clinicRecords';
 
 const providers = providersData as Provider[];
@@ -36,12 +37,9 @@ const BookingScheduler = ({services}: {services: Service[]}) => {
   const [bookedSlots, setBookedSlots] = useState<ClinicBookingRecord[]>([]);
 
   const bookedServices = useMemo(() => {
-    return booking.services
-      .map((selection) => ({
-        ...selection,
-        service: services.find((item) => item.id === selection.serviceId),
-      }))
-      .filter((item) => item.service);
+    return attachCatalogServices(booking.services, services).filter(
+      (item) => item.service
+    );
   }, [booking.services, services]);
 
   const totalDuration = booking.getTotalDuration(services);

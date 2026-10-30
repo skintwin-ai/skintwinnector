@@ -1,6 +1,7 @@
 import {NextRequest, NextResponse} from 'next/server';
 import type {Service} from '@/app/contexts/booking/types';
 import {requireOperatorAccount} from '@/lib/clinicAuth';
+import {isProviderTypeList} from '@/lib/providerTypes';
 import {
   CatalogMirrorError,
   updateProvisionedService,
@@ -9,8 +10,6 @@ import {
 function jsonError(error: string, status: number) {
   return NextResponse.json({error}, {status});
 }
-
-const PROVIDER_TYPES = new Set(['esthetician', 'specialist']);
 
 function readPatch(
   body: Record<string, unknown>
@@ -51,16 +50,10 @@ function readPatch(
     patch.durationMinutes = durationMinutes as number;
   }
   if (body.providerTypes !== undefined) {
-    if (
-      !Array.isArray(body.providerTypes) ||
-      body.providerTypes.length === 0 ||
-      body.providerTypes.some(
-        (value) => typeof value !== 'string' || !PROVIDER_TYPES.has(value)
-      )
-    ) {
+    if (!isProviderTypeList(body.providerTypes)) {
       return {ok: false, error: 'providerTypes is required'};
     }
-    patch.providerTypes = body.providerTypes as string[];
+    patch.providerTypes = body.providerTypes;
   }
   if (body.published !== undefined) {
     if (typeof body.published !== 'boolean') {

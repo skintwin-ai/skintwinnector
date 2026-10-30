@@ -1,8 +1,7 @@
-import {getServerSession} from 'next-auth';
 import {NextRequest, NextResponse} from 'next/server';
-import {authOptions} from '@/lib/auth';
+import {isSupportedChargeCurrency} from '@/lib/bookingCheckout';
+import {requireOperatorAccount} from '@/lib/clinicAuth';
 import {
-  assertSupportedSellerCurrency,
   bodyContainsForbiddenCheckoutFields,
   marketplaceFee,
   marketplaceIdempotencyKey,
@@ -13,8 +12,7 @@ import {
   findUnpaidOrderByKey,
   saveMarketplaceOrder,
 } from '@/lib/marketplaceOrders';
-import {salonBySlug, resolveServices} from '@/lib/serviceCatalog';
-import {isSupportedChargeCurrency} from '@/lib/bookingCheckout';
+import {salonBySlug} from '@/lib/serviceCatalog';
 import {stripe} from '@/lib/stripe';
 
 function jsonError(error: string, status: number) {
@@ -22,8 +20,7 @@ function jsonError(error: string, status: number) {
 }
 
 export async function POST(req: NextRequest) {
-  const session = await getServerSession(authOptions);
-  const buyerAccountId = session?.user?.stripeAccountId;
+  const buyerAccountId = await requireOperatorAccount();
   if (!buyerAccountId) {
     return jsonError('Unauthorized or no Stripe account found', 401);
   }
@@ -56,15 +53,13 @@ export async function POST(req: NextRequest) {
     return jsonError('This storefront cannot accept charges yet', 400);
   }
   const chargeCurrency = sellerAccount.default_currency;
-  const currencyError = assertSupportedSellerCurrency(chargeCurrency);
-  if (currencyError || !isSupportedChargeCurrency(chargeCurrency)) {
-    return jsonError(currencyError || 'Unsupported charge currency', 400);
+  if (!isSupportedChargeCurrency(chargeCurrency)) {
+    return jsonError(`Unsupported charge currency: ${chargeCurrency}`, 400);
   }
 
-  const catalog = await resolveServices(sellerAccountId, 'storefront');
   const priced = priceMarketplaceSelections(
     body?.services,
-    catalog,
+    salon.services,
     chargeCurrency
   );
   if (!priced.ok) {

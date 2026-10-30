@@ -124,14 +124,30 @@ export async function findMarketplaceOrderBySession(
 }
 
 export async function findUnpaidOrderByKey(idempotencyKey: string) {
-  return (
+  const cached =
     Array.from(orders.values()).find(
       (order) =>
         order.idempotencyKey === idempotencyKey &&
         order.paymentStatus === 'unpaid' &&
         order.checkoutUrl
-    ) || null
+    ) || null;
+  if (cached) {
+    return cached;
+  }
+  if (!(await tryMongo())) {
+    return null;
+  }
+  const {default: MarketplaceOrder} = await import(
+    '@/app/models/marketplaceOrder'
   );
+  const row = (await MarketplaceOrder.findOne({
+    idempotencyKey,
+    paymentStatus: 'unpaid',
+  }).lean()) as MarketplaceOrderRecord | null;
+  if (!row?.checkoutUrl) {
+    return null;
+  }
+  return remember(row);
 }
 
 export async function settleMarketplacePayment(input: {
@@ -195,7 +211,7 @@ export async function loadMarketplaceReceipt(
   return {order, checkout};
 }
 
-export async function findMarketplaceOrderForBuyer(
+async function findMarketplaceOrderForBuyer(
   orderId: string,
   buyerAccountId: string
 ) {

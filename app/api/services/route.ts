@@ -1,13 +1,12 @@
 import {NextRequest, NextResponse} from 'next/server';
 import type {Service} from '@/app/contexts/booking/types';
 import {requireOperatorAccount} from '@/lib/clinicAuth';
+import {isProviderTypeList} from '@/lib/providerTypes';
 import {createProvisionedService, resolveServices} from '@/lib/serviceCatalog';
 
 function jsonError(error: string, status: number) {
   return NextResponse.json({error}, {status});
 }
-
-const PROVIDER_TYPES = new Set(['esthetician', 'specialist']);
 
 function readCreateBody(
   body: Record<string, unknown>
@@ -29,13 +28,7 @@ function readCreateBody(
   if (!Number.isInteger(durationMinutes) || (durationMinutes as number) <= 0) {
     return {ok: false, error: 'durationMinutes must be a positive integer'};
   }
-  if (
-    !Array.isArray(body.providerTypes) ||
-    body.providerTypes.length === 0 ||
-    body.providerTypes.some(
-      (value) => typeof value !== 'string' || !PROVIDER_TYPES.has(value)
-    )
-  ) {
+  if (!isProviderTypeList(body.providerTypes)) {
     return {ok: false, error: 'providerTypes is required'};
   }
 
