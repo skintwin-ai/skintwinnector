@@ -2,8 +2,10 @@
 
 import ClientIntake from '@/app/components/skintwin/ClientIntake';
 import BookingBasket from '@/app/components/skintwin/BookingBasket';
+import {useTreatmentCatalog} from '@/app/hooks/useTreatmentCatalog';
 
 export default function IntakePage() {
+  const {services, error} = useTreatmentCatalog();
   return (
     <>
       <div>
@@ -15,10 +17,12 @@ export default function IntakePage() {
           Capture or look up client details before confirming the appointment.
         </p>
       </div>
+      {error && <p className="text-sm text-red-400">{error}</p>}
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
         <ClientIntake />
         <div className="xl:sticky xl:top-4 xl:self-start">
           <BookingBasket
+            services={services}
             continueHref="/bookings"
             continueLabel="Review schedule"
           />

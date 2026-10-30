@@ -6,27 +6,24 @@ import {Button} from '@/components/ui/button';
 import Container from '@/app/components/Container';
 import {useBooking} from '@/app/contexts/booking/BookingContext';
 import type {Service} from '@/app/contexts/booking/types';
-import servicesData from '@/app/data/services.json';
+import {attachCatalogServices} from '@/lib/bookingConfirmation';
 import {formatCurrency, formatDuration} from '@/lib/salon';
 
-const services = servicesData as Service[];
-
 const BookingBasket = ({
+  services,
   continueHref = '/bookings',
   continueLabel = 'Schedule appointment',
   continueDisabled = false,
 }: {
+  services: Service[];
   continueHref?: string;
   continueLabel?: string;
   continueDisabled?: boolean;
 }) => {
   const booking = useBooking();
-  const selected = booking.services
-    .map((selection) => ({
-      ...selection,
-      service: services.find((item) => item.id === selection.serviceId),
-    }))
-    .filter((item) => item.service);
+  const selected = attachCatalogServices(booking.services, services).filter(
+    (item) => item.service
+  );
 
   const totalPrice = booking.getTotalPrice(services);
   const totalDuration = booking.getTotalDuration(services, false);

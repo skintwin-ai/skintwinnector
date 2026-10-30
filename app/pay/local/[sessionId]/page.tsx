@@ -1,9 +1,10 @@
 import Link from 'next/link';
 import {notFound} from 'next/navigation';
 import {getLocalCheckoutSession} from '@/lib/localStripeRail';
+import {findMarketplaceOrderBySession} from '@/lib/marketplaceOrders';
 import {PayLocalCheckout} from './pay-form';
 
-export default function LocalCheckoutPage({
+export default async function LocalCheckoutPage({
   params,
 }: {
   params: {sessionId: string};
@@ -12,6 +13,13 @@ export default function LocalCheckoutPage({
   if (!session) {
     notFound();
   }
+  const marketplaceOrder = await findMarketplaceOrderBySession(
+    session.account,
+    session.id
+  );
+  const paidHref = marketplaceOrder
+    ? `/market/orders/${marketplaceOrder.id}?session_id=${session.id}`
+    : `/bookings/confirmation?session_id=${session.id}`;
 
   return (
     <main className="mx-auto max-w-lg space-y-4 p-6">
@@ -44,7 +52,7 @@ export default function LocalCheckoutPage({
       {session.payment_status === 'paid' ? (
         <Link
           className="inline-flex rounded-md bg-accent px-4 py-2 font-medium text-white"
-          href={`/bookings/confirmation?session_id=${session.id}`}
+          href={paidHref}
         >
           View confirmation
         </Link>

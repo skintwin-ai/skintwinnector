@@ -1,5 +1,11 @@
 import {NextRequest, NextResponse} from 'next/server';
+import {requireOperatorAccount} from '@/lib/clinicAuth';
 import {markBookingPayment} from '@/lib/clinicRecords';
+import {
+  findMarketplaceOrderBySession,
+  sessionMerchandiseTotal,
+  settleMarketplacePayment,
+} from '@/lib/marketplaceOrders';
 import {
   getLocalCheckoutSession,
   isLocalStripeKey,
@@ -8,6 +14,13 @@ import {
 
 function jsonError(error: string, status: number) {
   return NextResponse.json({error}, {status});
+}
+
+function requestOrigin(req: NextRequest) {
+  return (process.env.NEXTAUTH_URL || new URL(req.url).origin).replace(
+    /\/$/,
+    ''
+  );
 }
 
 export async function POST(req: NextRequest) {
@@ -23,6 +36,44 @@ export async function POST(req: NextRequest) {
   const existing = getLocalCheckoutSession(sessionId);
   if (!existing) {
     return jsonError('Checkout session not found', 404);
+  }
+
+  const marketplaceOrder = await findMarketplaceOrderBySession(
+    existing.account,
+    existing.id
+  );
+  if (marketplaceOrder) {
+    const buyerAccountId = await requireOperatorAccount();
+    if (buyerAccountId !== marketplaceOrder.buyerAccountId) {
+      return jsonError('Only the buying salon can confirm this payment', 403);
+    }
+    const merchandise = sessionMerchandiseTotal(existing);
+    const currencyMatches =
+      existing.currency.toLowerCase() ===
+      marketplaceOrder.currency.toLowerCase();
+    if (!currencyMatches || merchandise !== marketplaceOrder.merchandiseTotal) {
+      return jsonError('Checkout total does not match the order', 400);
+    }
+    const settled = await settleMarketplacePayment({
+      order: marketplaceOrder,
+      paymentStatus: 'paid',
+      currency: existing.currency,
+      merchandiseTotal: merchandise,
+      amountTotal: existing.amount_total,
+    });
+    if (!settled || settled.paymentStatus !== 'paid') {
+      return jsonError('Unable to update the marketplace order', 500);
+    }
+    const session = payLocalCheckoutSession(sessionId);
+    if (!session) {
+      return jsonError('Checkout session not found', 404);
+    }
+    const origin = requestOrigin(req);
+    return NextResponse.json({
+      sessionId: session.id,
+      paymentStatus: settled.paymentStatus,
+      confirmationUrl: `${origin}/market/orders/${settled.id}?session_id=${session.id}`,
+    });
   }
 
   const session = payLocalCheckoutSession(sessionId);
@@ -43,10 +94,7 @@ export async function POST(req: NextRequest) {
     console.error('Failed to persist local checkout payment', error);
   }
 
-  const origin = (process.env.NEXTAUTH_URL || new URL(req.url).origin).replace(
-    /\/$/,
-    ''
-  );
+  const origin = requestOrigin(req);
   return NextResponse.json({
     sessionId: session.id,
     paymentStatus: session.payment_status,
