@@ -1,9 +1,15 @@
+import {readFileSync} from 'node:fs';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import servicesData from '@/app/data/services.json';
 import type {Service} from '@/app/contexts/booking/types';
 import {
+  claimSalonSlug,
+  formatStorefrontAmount,
+  listIndexSalons,
+  loadMarketplaceIndex,
   resetServiceCatalogForTests,
   resolveServices,
+  salonBySlug,
   saveProvisionedService,
 } from './serviceCatalog';
 
@@ -91,5 +97,62 @@ describe('serviceCatalog', () => {
 
     expect(treatment.map((service) => service.id)).toEqual(['srv-a']);
     expect(treatment.some((service) => service.id === 'srv-b')).toBe(false);
+  });
+
+  it('returns published services for a known slug and nothing for an unknown slug', async () => {
+    claimSalonSlug('acct_a', 'Ada');
+    await saveProvisionedService(storedService('acct_a', 'srv-draft', false));
+    await saveProvisionedService(storedService('acct_a', 'srv-live', true));
+
+    const salon = await salonBySlug('ada');
+    expect(salon?.operatorAccountId).toBe('acct_a');
+    expect(salon?.services.map((service) => service.id)).toEqual(['srv-live']);
+    expect(await salonBySlug('missing')).toBeNull();
+  });
+
+  it('keeps an unpublished salon off the index and out of the shared file', async () => {
+    claimSalonSlug('acct_a', 'ada');
+    await saveProvisionedService(storedService('acct_a', 'srv-draft', false));
+
+    const salon = await salonBySlug('ada');
+    expect(salon?.services).toEqual([]);
+    expect(await listIndexSalons()).toEqual([]);
+  });
+
+  it('lists a salon only when it has a slug and a published service', async () => {
+    claimSalonSlug('acct_a', 'ada');
+    await saveProvisionedService(storedService('acct_a', 'srv-live', true));
+    await saveProvisionedService(storedService('acct_b', 'srv-b', true));
+
+    const index = await listIndexSalons();
+    expect(index.map((salon) => salon.slug)).toEqual(['ada']);
+    expect(index[0]?.services.map((service) => service.id)).toEqual([
+      'srv-live',
+    ]);
+  });
+
+  it('loads the index without finished onboarding and hides it from a missing session', async () => {
+    claimSalonSlug('acct_a', 'ada');
+    await saveProvisionedService(storedService('acct_a', 'srv-live', true));
+
+    expect(await loadMarketplaceIndex(null)).toBeNull();
+    const listed = await loadMarketplaceIndex({
+      user: {stripeAccountId: 'acct_a'},
+    });
+    expect(listed?.map((salon) => salon.slug)).toEqual(['ada']);
+  });
+
+  it('shows the seller currency amount in major units', () => {
+    const service = storedService('acct_a', 'srv-live', true);
+    expect(formatStorefrontAmount(service, 'usd')).toBe('25.00 USD');
+    expect(formatStorefrontAmount(service, 'ngn')).toBe('100 NGN');
+  });
+
+  it('keeps the storefront page off the dashboard and the shared file', () => {
+    const source = readFileSync('app/store/[slug]/page.tsx', 'utf8');
+    expect(source).not.toContain('services.json');
+    expect(source).not.toContain('(dashboard)');
+    expect(source).toContain("dynamic = 'force-dynamic'");
+    expect(source).not.toContain('generateStaticParams');
   });
 });

@@ -225,6 +225,95 @@ export async function updateProvisionedService(
   return next;
 }
 
+export type StorefrontSalon = {
+  slug: string;
+  operatorAccountId: string;
+  services: Array<Service & {published?: boolean}>;
+};
+
+export function formatStorefrontAmount(
+  service: Pick<Service, 'price' | 'usdChargeCents'>,
+  currency: string
+) {
+  const code = currency.toLowerCase();
+  if (code === 'usd') {
+    return `${(service.usdChargeCents / 100).toFixed(2)} USD`;
+  }
+  if (code === 'ngn') {
+    return `${service.price} NGN`;
+  }
+  return `${service.price} ${currency.toUpperCase()}`;
+}
+
+async function accountIdForSlug(raw: string) {
+  const slug = raw.trim().toLowerCase();
+  if (!slug) {
+    return null;
+  }
+  const cached = slugOwners.get(slug);
+  if (cached) {
+    return cached;
+  }
+  if (!(await tryMongo())) {
+    return null;
+  }
+  const {default: Salon} = await import('@/app/models/salon');
+  const salon = await Salon.findOne({slug}).lean();
+  if (!salon?.stripeAccountId || salon.slug !== slug) {
+    return null;
+  }
+  claimSalonSlug(String(salon.stripeAccountId), slug);
+  return String(salon.stripeAccountId);
+}
+
+export async function salonBySlug(
+  raw: string
+): Promise<StorefrontSalon | null> {
+  const slug = raw.trim().toLowerCase();
+  const operatorAccountId = await accountIdForSlug(slug);
+  if (!operatorAccountId) {
+    return null;
+  }
+  return {
+    slug,
+    operatorAccountId,
+    services: await resolveServices(operatorAccountId, 'storefront'),
+  };
+}
+
+export async function listIndexSalons(): Promise<StorefrontSalon[]> {
+  if (accountSlugs.size === 0 && (await tryMongo())) {
+    const {default: Salon} = await import('@/app/models/salon');
+    const salons = await Salon.find({
+      slug: {$exists: true, $ne: null},
+    }).lean();
+    for (const salon of salons || []) {
+      if (salon.slug && salon.stripeAccountId) {
+        claimSalonSlug(String(salon.stripeAccountId), String(salon.slug));
+      }
+    }
+  }
+
+  const listed: StorefrontSalon[] = [];
+  for (const [operatorAccountId, slug] of accountSlugs.entries()) {
+    const services = await resolveServices(operatorAccountId, 'storefront');
+    if (services.length === 0) {
+      continue;
+    }
+    listed.push({slug, operatorAccountId, services});
+  }
+  return listed.sort((left, right) => left.slug.localeCompare(right.slug));
+}
+
+export async function loadMarketplaceIndex(
+  session: {user?: {stripeAccountId?: string | null} | null} | null
+): Promise<StorefrontSalon[] | null> {
+  if (!session?.user) {
+    return null;
+  }
+  return listIndexSalons();
+}
+
 export async function resolveServices(
   operatorAccountId: string,
   mode: CatalogMode
