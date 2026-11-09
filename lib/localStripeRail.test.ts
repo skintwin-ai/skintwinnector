@@ -27,6 +27,21 @@ describe('local Stripe rail', () => {
     );
   });
 
+  it('issues a local account session client secret', async () => {
+    const stripe = createLocalStripe();
+    const session = await stripe.accountSessions.create({
+      account: 'acct_local_demo',
+    });
+    expect(session.client_secret).toMatch(/^acc_local_secret_/);
+  });
+
+  it('marks local connected accounts onboarded for booking', async () => {
+    const stripe = createLocalStripe();
+    const account = await stripe.accounts.retrieve('acct_local_demo');
+    expect(account.details_submitted).toBe(true);
+    expect(account.default_currency).toBe('usd');
+  });
+
   it('creates, pays, and retrieves a checkout session', async () => {
     process.env.NEXTAUTH_URL = 'http://localhost:3000';
     const stripe = createLocalStripe();

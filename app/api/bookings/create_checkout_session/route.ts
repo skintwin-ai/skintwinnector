@@ -54,6 +54,9 @@ export async function POST(req: NextRequest) {
       ),
     ]);
     const chargeCurrency = stripeAccount.default_currency;
+    if (!chargeCurrency) {
+      return jsonError(`Unsupported charge currency: ${chargeCurrency}`, 400);
+    }
 
     const selections = Array.isArray(body?.services) ? body.services : [];
     const catalog = await resolveServices(
