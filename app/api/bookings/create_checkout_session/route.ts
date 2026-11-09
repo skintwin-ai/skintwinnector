@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
         {stripeAccount: session.user.stripeAccountId}
       ),
     ]);
-    const chargeCurrency = stripeAccount.default_currency;
+    const chargeCurrency = stripeAccount.default_currency || 'usd';
 
     const selections = Array.isArray(body?.services) ? body.services : [];
     let built;
