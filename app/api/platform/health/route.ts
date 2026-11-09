@@ -18,7 +18,10 @@ async function isReachable(baseUrl: string): Promise<boolean> {
     try {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 1500);
-      const res = await fetch(probe, {signal: controller.signal, method: 'GET'});
+      const res = await fetch(probe, {
+        signal: controller.signal,
+        method: 'GET',
+      });
       clearTimeout(timeout);
       if (res.status > 0 && res.status < 500) return true;
     } catch {
@@ -54,9 +57,21 @@ export async function GET() {
       lms: lmsUp,
     },
     peers: {
-      salon: {url: salonUrl, configured: Boolean(process.env.SKINTWIN_SALON_URL), reachable: salonUp},
-      suite: {url: suiteUrl, configured: Boolean(process.env.REGIMA_SUITE_URL), reachable: suiteUp},
-      lms: {url: lmsUrl, configured: Boolean(process.env.REGIMA_LMS_URL), reachable: lmsUp},
+      salon: {
+        url: salonUrl,
+        configured: Boolean(process.env.SKINTWIN_SALON_URL),
+        reachable: salonUp,
+      },
+      suite: {
+        url: suiteUrl,
+        configured: Boolean(process.env.REGIMA_SUITE_URL),
+        reachable: suiteUp,
+      },
+      lms: {
+        url: lmsUrl,
+        configured: Boolean(process.env.REGIMA_LMS_URL),
+        reachable: lmsUp,
+      },
     },
     meshReady: salonUp && suiteUp && lmsUp,
   });
