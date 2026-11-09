@@ -111,7 +111,20 @@ export function createLocalStripe() {
   return {
     accounts: {
       async retrieve(id: string) {
-        return {id, default_currency: 'usd'};
+        return {
+          id,
+          default_currency: 'usd',
+          details_submitted: true,
+          charges_enabled: true,
+          payouts_enabled: true,
+        };
+      },
+    },
+    accountSessions: {
+      async create(params: {account: string}) {
+        return {
+          client_secret: `acc_local_secret_${params.account}`,
+        };
       },
     },
     tax: {
